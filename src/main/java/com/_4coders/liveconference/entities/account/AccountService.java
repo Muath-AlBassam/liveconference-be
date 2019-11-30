@@ -9,7 +9,4 @@ public class AccountService {
     @Autowired
     private AccountRepository accountRepository;
 
-    public void asd() {
-        accountRepository.deleteById((long) 9);
-    }
 }
