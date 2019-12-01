@@ -14,6 +14,13 @@ import javax.validation.constraints.Size;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * The main entry point for users of the system where each {@code Account} has many {@code Users}
+ *
+ * @author Abdulmajid
+ * @version 0.0.1
+ * @since 30/1/2019
+ */
 @Entity
 @Table(name = "accounts")
 @Getter

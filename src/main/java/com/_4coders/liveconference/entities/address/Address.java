@@ -8,6 +8,13 @@ import lombok.*;
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 
+/**
+ * Represent the address of an {@code Account}
+ *
+ * @author Abdulmajid
+ * @version 0.0.1
+ * @since 30/1/2019
+ */
 @Entity
 @Table(name = "addresses")
 @Data

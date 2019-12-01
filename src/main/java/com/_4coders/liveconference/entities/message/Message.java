@@ -10,6 +10,13 @@ import javax.persistence.*;
 import java.util.Date;
 import java.util.UUID;
 
+/**
+ * Represent the {@code Message} sent to other {@code Users}
+ *
+ * @author Abdulmajid
+ * @version 0.0.1
+ * @since 30/1/2019
+ */
 @Entity
 @Table(name = "message")
 @Getter

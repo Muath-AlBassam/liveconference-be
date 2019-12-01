@@ -11,6 +11,13 @@ import javax.persistence.*;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Represent the {@code Chat} between 2 {@code Users}
+ *
+ * @author Abdulmajid
+ * @version 0.0.1
+ * @since 30/1/2019
+ */
 @Entity
 @Table(name = "chat")
 @Getter
@@ -32,15 +39,21 @@ public class Chat extends AuditingEntity {
     @EqualsAndHashCode.Include
     private UUID uuid;
 
+    /**
+     * Represent the {@code User} that started the chat
+     */
     @OneToOne
     @JoinColumn(name = "fk_user_initiator", referencedColumnName = "id", nullable = false, updatable = false)
     private User initiator;
 
+    /**
+     * Represent the target {@code User} of the chat that the {@code initiator} onend with
+     */
     @OneToOne
     @JoinColumn(name = "fk_user_target", referencedColumnName = "id", nullable = false, updatable = false)
     private User target;
 
     @OneToMany
     @JoinColumn(name = "fk_message", referencedColumnName = "id")
-    private Set<Message> messages;
+    private Set<Message> messages;//TODO: change to Page(must)
 }

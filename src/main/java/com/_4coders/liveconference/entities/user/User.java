@@ -10,6 +10,13 @@ import javax.persistence.*;
 import java.util.Date;
 import java.util.UUID;
 
+/**
+ * The main way the user can use the system after login
+ *
+ * @author Abdulmajid
+ * @version 0.0.1
+ * @since 30/1/2019
+ */
 @Entity
 @Table(name = "users")
 @Getter
@@ -37,13 +44,22 @@ public class User extends AuditingEntity {
     @Column(name = "last_login")
     private Date lastLogin;
 
+    /**
+     * Represent the current status of the user
+     */
     @Column(name = "status", nullable = false)
     private Status status;
 
-
+    /**
+     * <p>Represent wither this user has been deleted or not</p>
+     * <p>usually this will be false or null</p>
+     */
     @Column(name = "is_deleted")
     private Boolean isDeleted;
 
+    /**
+     * Represent the owner of this user
+     */
     @ManyToOne
     @JoinColumn(name = "fk_account_id", referencedColumnName = "id")
     private Account account;
