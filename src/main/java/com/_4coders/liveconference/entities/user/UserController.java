@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/flogger/users")
 public class UserController {
     @Autowired
-    UserService userService;
+    private UserService userService;
 
 }

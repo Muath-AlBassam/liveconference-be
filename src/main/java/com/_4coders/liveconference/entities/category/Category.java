@@ -39,9 +39,15 @@ public class Category extends RepresentationModel<Category> {
     @Column(name = "category", nullable = false)
     private String name;
 
-    @OneToMany
-    @JoinColumn(name = "fk_user_member", referencedColumnName = "id")
-    private Set<User> members;//todo fix this issue solve by ManyToMany
+    @ManyToOne
+    @JoinColumn(name = "fk_user_owner", referencedColumnName = "id", nullable = false)
+    private User owner;
+
+    @ManyToMany
+    @JoinTable(name = "categories_users",
+            joinColumns = @JoinColumn(name = "fk_categories_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "fk_users_id", referencedColumnName = "id"))
+    private Set<User> members;
 
     @Column(name = "creation_date", nullable = false, updatable = false)
     @CreatedDate

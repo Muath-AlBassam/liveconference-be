@@ -8,5 +8,5 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/flogger/address")
 public class AddressController {
     @Autowired
-    AddressService addressService;
+    private AddressService addressService;
 }

@@ -1,10 +1,11 @@
-package com._4coders.liveconference.entities.address;
+package com._4coders.liveconference.entities.category;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AddressService {
+public class CategoryService {
+
     @Autowired
-    private AddressRepository addressRepository;
+    private CategoryRepository categoryRepository;
 }

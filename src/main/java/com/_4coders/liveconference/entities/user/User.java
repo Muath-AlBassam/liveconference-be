@@ -65,7 +65,7 @@ public class User extends RepresentationModel<User> {
      * Represent the owner of this user
      */
     @ManyToOne
-    @JoinColumn(name = "fk_account_id", referencedColumnName = "id")
+    @JoinColumn(name = "fk_account_id", referencedColumnName = "id", nullable = false)
     private Account account;
 
     //todo add friends, groups, setting, cards and categories

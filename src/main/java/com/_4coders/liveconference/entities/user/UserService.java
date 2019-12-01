@@ -6,6 +6,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
 }
