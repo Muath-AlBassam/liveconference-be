@@ -1,16 +1,20 @@
 package com._4coders.liveconference.entities.account;
 
-import com._4coders.liveconference.entities.Auditing.AuditingEntity;
 import com._4coders.liveconference.entities.address.Address;
 import com._4coders.liveconference.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Size;
+import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
@@ -22,13 +26,14 @@ import java.util.UUID;
  * @since 30/1/2019
  */
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "accounts")
 @Getter
 @Setter
 @RequiredArgsConstructor
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class Account extends AuditingEntity {
+public class Account extends RepresentationModel<Account> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -75,6 +80,13 @@ public class Account extends AuditingEntity {
     @JsonManagedReference
     private Set<User> users;
 
+    @Column(name = "registration_date", nullable = false, updatable = false)
+    @CreatedDate
+    private Date registrationDate;
+
+    @Column(name = "last_modified_date", nullable = false)
+    @LastModifiedDate
+    private Date lastModifiedDate;
     //TODO add blockedAccounts and IPAddresses
 
 }

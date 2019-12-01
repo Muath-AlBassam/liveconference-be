@@ -1,10 +1,13 @@
 package com._4coders.liveconference.entities.message;
 
-import com._4coders.liveconference.entities.Auditing.AuditingEntity;
 import com._4coders.liveconference.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -18,13 +21,14 @@ import java.util.UUID;
  * @since 30/1/2019
  */
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "messages")
 @Getter
 @Setter
 @RequiredArgsConstructor
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class Message extends AuditingEntity {
+public class Message extends RepresentationModel<Message> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -66,4 +70,12 @@ public class Message extends AuditingEntity {
 
     @Column(name = "type", nullable = false, updatable = false)
     private Type type;
+
+    @Column(name = "date_sent", nullable = false, updatable = false)
+    @CreatedDate
+    private Date dateSent;
+
+    @Column(name = "last_modified_date", nullable = false)
+    @LastModifiedDate
+    private Date lastModifiedDate;
 }

@@ -1,10 +1,13 @@
 package com._4coders.liveconference.entities.user;
 
-import com._4coders.liveconference.entities.Auditing.AuditingEntity;
 import com._4coders.liveconference.entities.account.Account;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -18,13 +21,14 @@ import java.util.UUID;
  * @since 30/1/2019
  */
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "users")
 @Getter
 @Setter
 @ToString
 @RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class User extends AuditingEntity {
+public class User extends RepresentationModel<User> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -65,4 +69,12 @@ public class User extends AuditingEntity {
     private Account account;
 
     //todo add friends, groups, setting, cards and categories
+
+    @Column(name = "creation_date", nullable = false, updatable = false)
+    @CreatedDate
+    private Date creationDate;
+
+    @Column(name = "last_modified_date", nullable = false)
+    @LastModifiedDate
+    private Date lastModifiedDate;
 }

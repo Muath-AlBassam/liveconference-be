@@ -1,13 +1,17 @@
 package com._4coders.liveconference.entities.chat;
 
-import com._4coders.liveconference.entities.Auditing.AuditingEntity;
 import com._4coders.liveconference.entities.message.Message;
 import com._4coders.liveconference.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
+import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
@@ -19,13 +23,14 @@ import java.util.UUID;
  * @since 30/1/2019
  */
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "chats")
 @Getter
 @Setter
 @RequiredArgsConstructor
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class Chat extends AuditingEntity {
+public class Chat extends RepresentationModel<Chat> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -56,4 +61,12 @@ public class Chat extends AuditingEntity {
     @OneToMany
     @JoinColumn(name = "fk_message", referencedColumnName = "id")
     private Set<Message> messages;//TODO: change to Page(must)
+
+    @Column(name = "creation_date", nullable = false, updatable = false)
+    @CreatedDate
+    private Date creationDate;
+
+    @Column(name = "last_modified_date", nullable = false)
+    @LastModifiedDate
+    private Date lastModifiedDate;
 }

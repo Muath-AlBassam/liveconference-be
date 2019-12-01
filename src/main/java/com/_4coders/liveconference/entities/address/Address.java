@@ -1,12 +1,16 @@
 package com._4coders.liveconference.entities.address;
 
-import com._4coders.liveconference.entities.Auditing.AuditingEntity;
 import com._4coders.liveconference.entities.account.Account;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.util.Date;
 
 /**
  * Represent the address of an {@code Account}
@@ -16,6 +20,7 @@ import javax.validation.constraints.Size;
  * @since 30/1/2019
  */
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "addresses")
 @Data
 @Getter
@@ -23,7 +28,7 @@ import javax.validation.constraints.Size;
 @RequiredArgsConstructor
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class Address extends AuditingEntity {
+public class Address extends RepresentationModel<Address> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -63,4 +68,12 @@ public class Address extends AuditingEntity {
     @JoinColumn(name = "fk_account_id", referencedColumnName = "id")
     @JsonBackReference
     private Account account;
+
+    @Column(name = "creation_date", nullable = false, updatable = false)
+    @CreatedDate
+    private Date creationDate;
+
+    @Column(name = "last_modified_date", nullable = false)
+    @LastModifiedDate
+    private Date lastModifiedDate;
 }
