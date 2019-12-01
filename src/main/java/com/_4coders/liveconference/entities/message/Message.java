@@ -65,15 +65,15 @@ public class Message extends RepresentationModel<Message> {
     @Column(name = "is_deleted")
     private Boolean isDeleted;
 
-    @Column(name = "date_deleted")
-    private Date dateDeleted;
+    @Column(name = "deleted_date")
+    private Date deletedDate;
 
     @Column(name = "type", nullable = false, updatable = false)
     private Type type;
 
-    @Column(name = "date_sent", nullable = false, updatable = false)
+    @Column(name = "sent_date", nullable = false, updatable = false)
     @CreatedDate
-    private Date dateSent;
+    private Date sentDate;
 
     @Column(name = "last_modified_date", nullable = false)
     @LastModifiedDate

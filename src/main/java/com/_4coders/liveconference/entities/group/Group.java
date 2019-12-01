@@ -1,7 +1,10 @@
-package com._4coders.liveconference.entities.category;
+package com._4coders.liveconference.entities.group;
 
+
+import com._4coders.liveconference.entities.channel.Channel;
 import com._4coders.liveconference.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -11,23 +14,17 @@ import org.springframework.hateoas.RepresentationModel;
 import javax.persistence.*;
 import java.util.Date;
 import java.util.Set;
+import java.util.UUID;
 
-/**
- * Represents the {@code Category} that the {@code User} creates for his convenience(used with {@code cards})
- *
- * @author Abdulmajid
- * @version 0.0.1
- * @since 30/1/2019
- */
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "categories")
+@Table(name = "groups")
 @Getter
 @Setter
 @RequiredArgsConstructor
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class Category extends RepresentationModel<Category> {
+public class Group extends RepresentationModel<Group> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -36,18 +33,20 @@ public class Category extends RepresentationModel<Category> {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(name = "category", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "uuid", nullable = false, unique = true, updatable = false)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @EqualsAndHashCode.Include
+    private UUID uuid;
+
+    @Column(name = "name", nullable = false, columnDefinition = "TEXT")
     private String name;
 
-    @ManyToOne
-    @JoinColumn(name = "fk_user_owner", referencedColumnName = "id", nullable = false)
-    private User owner;
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
 
-    @ManyToMany
-    @JoinTable(name = "categories_users",
-            joinColumns = @JoinColumn(name = "fk_categories_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "fk_users_id", referencedColumnName = "id"))
-    private Set<User> members;
+    @ManyToOne
+    @JoinColumn(name = "fk_user_creator", referencedColumnName = "id", nullable = false, updatable = false)
+    private User creator;
 
     @Column(name = "creation_date", nullable = false, updatable = false)
     @CreatedDate
@@ -57,4 +56,10 @@ public class Category extends RepresentationModel<Category> {
     @LastModifiedDate
     private Date lastModifiedDate;
 
+    @OneToMany(mappedBy = "group")
+    private Set<GroupUser> groupUsers;
+
+    @OneToMany(mappedBy = "ownerGroup")
+    private Set<Channel> channels;
+    //TODO add default channel and groupSettings
 }

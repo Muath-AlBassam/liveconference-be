@@ -1,6 +1,7 @@
-package com._4coders.liveconference.entities.chat;
+package com._4coders.liveconference.entities.channel;
 
-import com._4coders.liveconference.entities.user.User;
+import com._4coders.liveconference.entities.conference.Conference;
+import com._4coders.liveconference.entities.group.Group;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
@@ -13,22 +14,15 @@ import javax.persistence.*;
 import java.util.Date;
 import java.util.UUID;
 
-/**
- * Represent the {@code Chat} between 2 {@code Users}
- *
- * @author Abdulmajid
- * @version 0.0.1
- * @since 30/1/2019
- */
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "chats")
+@Table(name = "channels")
 @Getter
 @Setter
 @RequiredArgsConstructor
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class Chat extends RepresentationModel<Chat> {
+public class Channel extends RepresentationModel<Channel> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -42,23 +36,8 @@ public class Chat extends RepresentationModel<Chat> {
     @EqualsAndHashCode.Include
     private UUID uuid;
 
-    /**
-     * Represent the {@code User} that started the chat
-     */
-    @OneToOne
-    @JoinColumn(name = "fk_user_initiator", referencedColumnName = "id", nullable = false, updatable = false)
-    private User initiator;
-
-    /**
-     * Represent the target {@code User} of the chat that the {@code initiator} onend with
-     */
-    @OneToOne
-    @JoinColumn(name = "fk_user_target", referencedColumnName = "id", nullable = false, updatable = false)
-    private User target;
-
-//    @OneToMany
-//    @JoinColumn(name = "fk_message", referencedColumnName = "id")
-//    private Set<Message> messages;//TODO: change to Page(must) in service
+    @Column(name = "name", nullable = false, columnDefinition = "TEXT")
+    private String name;
 
     @Column(name = "creation_date", nullable = false, updatable = false)
     @CreatedDate
@@ -67,4 +46,19 @@ public class Chat extends RepresentationModel<Chat> {
     @Column(name = "last_modified_date", nullable = false)
     @LastModifiedDate
     private Date lastModifiedDate;
+
+    @ManyToOne
+    @JoinColumn(name = "fk_group_owner", referencedColumnName = "id", nullable = false, updatable = false)
+    private Group ownerGroup;
+
+    @OneToOne(mappedBy = "ownerChannel")
+    private Conference conference;
+
+//    @OneToMany
+//    @JoinColumn(name = "")
+//    private Set<Message> messages;//TODO: change to Page(must) in service
+
+    //TODO add channel settings and conference
+
+
 }
