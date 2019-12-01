@@ -14,7 +14,7 @@ import javax.persistence.*;
  * @since 30/1/2019
  */
 @Entity
-@Table(name = "category")
+@Table(name = "categories")
 @Getter
 @Setter
 @RequiredArgsConstructor

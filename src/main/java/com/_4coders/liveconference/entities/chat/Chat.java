@@ -19,7 +19,7 @@ import java.util.UUID;
  * @since 30/1/2019
  */
 @Entity
-@Table(name = "chat")
+@Table(name = "chats")
 @Getter
 @Setter
 @RequiredArgsConstructor
