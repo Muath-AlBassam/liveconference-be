@@ -1,6 +1,7 @@
 package com._4coders.liveconference.entities.account;
 
 import com._4coders.liveconference.entities.address.Address;
+import com._4coders.liveconference.entities.role.system.SystemRole;
 import com._4coders.liveconference.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -87,6 +88,13 @@ public class Account extends RepresentationModel<Account> {
     @Column(name = "last_modified_date", nullable = false)
     @LastModifiedDate
     private Date lastModifiedDate;
+
+    @ManyToMany
+    @JoinTable(name = "accounts_system_roles",
+            joinColumns = @JoinColumn(name = "fk_account_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "fk_system_roles_id", referencedColumnName = "id"))
+    private Set<SystemRole> roles;
+
     //TODO add blockedAccounts and IPAddresses
 
 }

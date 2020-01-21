@@ -1,6 +1,8 @@
 package com._4coders.liveconference.entities.group;
 
+import com._4coders.liveconference.entities.role.group.GroupRole;
 import com._4coders.liveconference.entities.user.User;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -9,6 +11,7 @@ import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.Set;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
@@ -36,7 +39,13 @@ public class GroupUser extends RepresentationModel<GroupUser> {
     @EqualsAndHashCode.Include
     private Group group;
 
-    //TODO added the permission list
+    @ManyToMany
+    @JoinTable(name = "groups_user_group_roles",
+            joinColumns = @JoinColumn(name = "fk_groups_users_id", referencedColumnName = "fk_user_id"),
+            inverseJoinColumns = @JoinColumn(name = "fk_group_roles_id", referencedColumnName = "id"))
+    @JsonManagedReference
+    private Set<GroupRole> roles;
+
 
     @Column(name = "join_date", nullable = false, updatable = false)
     @CreatedDate
