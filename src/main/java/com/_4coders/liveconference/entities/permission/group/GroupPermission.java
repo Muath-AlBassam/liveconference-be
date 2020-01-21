@@ -41,9 +41,6 @@ public class GroupPermission extends RepresentationModel<GroupPermission> {
     @Column(name = "action", nullable = false, unique = true, columnDefinition = "TEXT")
     private String action;
 
-//    @ManyToMany(mappedBy = "permissions")REMOVE
-//    @JsonBackReference
-//    private Set<GroupRole> roles;
 
     @PrePersist
     private void setUUID() {

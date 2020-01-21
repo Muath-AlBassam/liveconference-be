@@ -23,7 +23,7 @@ import java.util.UUID;
 @ToString
 @RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class SystemPermission extends RepresentationModel<SystemPermission> {//todo may remove RM<...>
+public class SystemPermission extends RepresentationModel<SystemPermission> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -41,10 +41,6 @@ public class SystemPermission extends RepresentationModel<SystemPermission> {//t
      */
     @Column(name = "action", nullable = false, unique = true, columnDefinition = "TEXT")
     private String action;
-
-//    @ManyToMany(mappedBy = "permissions")REMOVE
-//    @JsonBackReference
-//    private Set<SystemRole> roles;
 
     @PrePersist
     private void setUUID() {

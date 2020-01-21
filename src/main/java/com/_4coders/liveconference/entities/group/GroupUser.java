@@ -30,13 +30,11 @@ public class GroupUser extends RepresentationModel<GroupUser> {
     @ManyToOne
     @MapsId("userID")
     @JoinColumn(name = "fk_user_id", referencedColumnName = "id", nullable = false, updatable = false)
-    @EqualsAndHashCode.Include
     private User user;
 
     @ManyToOne
     @MapsId("groupID")
     @JoinColumn(name = "fk_group_id", referencedColumnName = "id", nullable = false, updatable = false)
-    @EqualsAndHashCode.Include
     private Group group;
 
     @ManyToMany

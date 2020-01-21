@@ -78,4 +78,9 @@ public class User extends RepresentationModel<User> {
     @Column(name = "last_modified_date", nullable = false)
     @LastModifiedDate
     private Date lastModifiedDate;
+
+    @PrePersist
+    private void setUUID() {
+        uuid = UUID.randomUUID();
+    }
 }

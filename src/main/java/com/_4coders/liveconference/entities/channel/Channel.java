@@ -33,7 +33,6 @@ public class Channel extends RepresentationModel<Channel> {
 
     @Column(name = "uuid", nullable = false, unique = true, updatable = false)
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @EqualsAndHashCode.Include
     private UUID uuid;
 
     @Column(name = "name", nullable = false, columnDefinition = "TEXT")
@@ -60,5 +59,8 @@ public class Channel extends RepresentationModel<Channel> {
 
     //TODO add channel settings and conference
 
-
+    @PrePersist
+    private void setUUID() {
+        uuid = UUID.randomUUID();
+    }
 }

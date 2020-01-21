@@ -39,7 +39,6 @@ public class Chat extends RepresentationModel<Chat> {
 
     @Column(name = "uuid", nullable = false, unique = true, updatable = false)
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @EqualsAndHashCode.Include
     private UUID uuid;
 
     /**
@@ -67,4 +66,9 @@ public class Chat extends RepresentationModel<Chat> {
     @Column(name = "last_modified_date", nullable = false)
     @LastModifiedDate
     private Date lastModifiedDate;
+
+    @PrePersist
+    private void setUUID() {
+        uuid = UUID.randomUUID();
+    }
 }

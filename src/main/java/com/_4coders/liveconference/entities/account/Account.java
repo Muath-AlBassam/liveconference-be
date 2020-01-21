@@ -45,7 +45,6 @@ public class Account extends RepresentationModel<Account> {
 
     @Column(name = "uuid", nullable = false, unique = true, updatable = false)
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @EqualsAndHashCode.Include
     private UUID uuid;
 
     @Column(name = "password", nullable = false, columnDefinition = "TEXT")
@@ -96,5 +95,10 @@ public class Account extends RepresentationModel<Account> {
     private Set<SystemRole> roles;
 
     //TODO add blockedAccounts and IPAddresses
+
+    @PrePersist
+    private void setUUID() {
+        uuid = UUID.randomUUID();
+    }
 
 }

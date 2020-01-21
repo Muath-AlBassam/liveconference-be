@@ -35,7 +35,6 @@ public class Group extends RepresentationModel<Group> {
 
     @Column(name = "uuid", nullable = false, unique = true, updatable = false)
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @EqualsAndHashCode.Include
     private UUID uuid;
 
     @Column(name = "name", nullable = false, columnDefinition = "TEXT")
@@ -62,4 +61,9 @@ public class Group extends RepresentationModel<Group> {
     @OneToMany(mappedBy = "ownerGroup")
     private Set<Channel> channels;
     //TODO add default channel and groupSettings
+
+    @PrePersist
+    private void setUUID() {
+        uuid = UUID.randomUUID();
+    }
 }
