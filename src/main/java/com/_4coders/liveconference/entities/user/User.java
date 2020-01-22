@@ -1,8 +1,10 @@
 package com._4coders.liveconference.entities.user;
 
 import com._4coders.liveconference.entities.account.Account;
+import com._4coders.liveconference.entities.setteing.user.UserSetting;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -69,7 +71,11 @@ public class User extends RepresentationModel<User> {
     @JsonBackReference //TODO DISCUSS LATER
     private Account account;
 
-    //todo add friends, groups, setting, cards and categories
+    @OneToOne(mappedBy = "user")
+    @JsonManagedReference
+    private UserSetting userSetting;
+
+    //todo add friends, groups, cards and categories
 
     @Column(name = "creation_date", nullable = false, updatable = false)
     @CreatedDate

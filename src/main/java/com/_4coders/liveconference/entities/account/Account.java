@@ -94,7 +94,7 @@ public class Account extends RepresentationModel<Account> {
             inverseJoinColumns = @JoinColumn(name = "fk_system_roles_id", referencedColumnName = "id"))
     private Set<SystemRole> roles;
 
-    //TODO add blockedAccounts and IPAddresses
+    //TODO add blockedAccounts, current in use user and IPAddresses
 
     @PrePersist
     private void setUUID() {

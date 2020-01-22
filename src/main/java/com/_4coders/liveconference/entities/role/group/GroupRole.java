@@ -52,7 +52,7 @@ public class GroupRole extends RepresentationModel<GroupRole> {
     @JsonManagedReference
     private Set<GroupPermission> permissions;
 
-//    @ManyToOne
+//    @ManyToOne //TODO change to Page or Flux
 //    @JoinColumn(name = "fk_group_settings_id", referencedColumnName = "id", nullable = false, updatable = false)
 //    @JsonBackReference
 //    private GroupSettings groupSettings;

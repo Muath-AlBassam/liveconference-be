@@ -2,6 +2,7 @@ package com._4coders.liveconference.entities.group;
 
 
 import com._4coders.liveconference.entities.channel.Channel;
+import com._4coders.liveconference.entities.setteing.group.GroupSetting;
 import com._4coders.liveconference.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -60,7 +61,11 @@ public class Group extends RepresentationModel<Group> {
 
     @OneToMany(mappedBy = "ownerGroup")
     private Set<Channel> channels;
-    //TODO add default channel and groupSettings
+
+    @OneToOne(mappedBy = "group", cascade = CascadeType.REMOVE)
+    private GroupSetting groupSetting;
+
+    //TODO add default channel
 
     @PrePersist
     private void setUUID() {
