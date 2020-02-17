@@ -9,6 +9,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 
@@ -20,7 +22,10 @@ import java.util.Set;
 @RequiredArgsConstructor
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class Conference extends RepresentationModel<Conference> {
+public class Conference extends RepresentationModel<Conference> implements Serializable {
+
+    @Transient
+    private static final long serialVersionUID = -48321237218763214L;
 
     @Id
     @Column(name = "id")
@@ -30,6 +35,7 @@ public class Conference extends RepresentationModel<Conference> {
 
 
     @Column(name = "url", nullable = false, columnDefinition = "TEXT")
+    @NotBlank//TODO check if @URL is better here
     private String URL;
 
     @Column(name = "initiation_date", nullable = false, updatable = false)

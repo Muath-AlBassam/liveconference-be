@@ -8,6 +8,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 
 @Entity
@@ -18,7 +19,10 @@ import java.util.Date;
 @RequiredArgsConstructor
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class ConferenceUser extends RepresentationModel<ConferenceUser> {
+public class ConferenceUser extends RepresentationModel<ConferenceUser> implements Serializable {
+
+    @Transient
+    private static final long serialVersionUID = 1782443543139451L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -44,7 +48,7 @@ public class ConferenceUser extends RepresentationModel<ConferenceUser> {
     private Date leftDate;
 
     @Column(name = "disconnection_type")
-    private Type disconnectionType;
+    private ConferenceDisconnectionType disconnectionType;
 
 
 }

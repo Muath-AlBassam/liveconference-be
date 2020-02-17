@@ -1,6 +1,30 @@
-server:
-  port: 8080
 spring:
+  profiles:
+    active:
+      - development
+
+---
+server:
+  #  port: 8080
+  port: 8443
+  ssl:
+    key-store: src/main/resources/keystore/ecim_dev_certificate.p12
+    key-store-password: 7,ae[t{'F;n3Fq[RD7GCYi~kx6#
+    key-store-type: PKCS12
+    key-alias: ecim_dev_certificate
+    key-password: 7,ae[t{'F;n3Fq[RD7GCYi~kx6#
+  servlet:
+    session:
+      timeout: 1200 #20 min
+  compression:
+    enabled: true
+#    min-response-size: 1024 #1KB
+spring:
+  profiles: development
+  session:
+    store-type: redis
+    redis:
+      cleanup-cron: 0 0 6 * * ? # at 0 sec 0 min hour 6 all days of month all months any day of the week
   jpa:
     hibernate:
       ddl-auto: update
@@ -9,3 +33,39 @@ spring:
     url: jdbc:postgresql://localhost:5433/4CoderPrototype
     username: 4Coder
     password: 4Coder
+  jackson:
+    serialization:
+      INDENT_OUTPUT: true
+logging:
+  level:
+    root: info
+    web: debug
+    sql: debug
+    org.springframework.security.web.FilterChainProxy: trace
+    com._4coders.liveconference.entities: trace
+#    com._4coders.liveconference.entities.account: trace
+
+
+---
+
+server:
+  port: 8080
+  servlet:
+    session:
+      timeout: 20m
+spring:
+  profiles: production
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+#  datasource:
+#    url: jdbc:postgresql://localhost:5433/4CoderPrototype
+#    username: 4Coder
+#    password: 4Coder
+logging:
+  level:
+    root: info
+    web: info
+    sql: info
+#    org.springframework.security.web.FilterChainProxy: info

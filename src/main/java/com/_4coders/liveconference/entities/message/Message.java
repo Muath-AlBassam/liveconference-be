@@ -10,6 +10,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
 
@@ -28,7 +30,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class Message extends RepresentationModel<Message> {
+public class Message extends RepresentationModel<Message> implements Serializable {
+
+    @Transient
+    private static final long serialVersionUID = 873127984140146545L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -45,6 +50,7 @@ public class Message extends RepresentationModel<Message> {
      * this attribute represent the content of the message sent
      */
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
+    @NotEmpty
     private String content;
 
     @OneToOne
@@ -68,7 +74,7 @@ public class Message extends RepresentationModel<Message> {
     private Date deletedDate;
 
     @Column(name = "type", nullable = false, updatable = false)
-    private Type type;
+    private MessageType type;
 
     @Column(name = "sent_date", nullable = false, updatable = false)
     @CreatedDate

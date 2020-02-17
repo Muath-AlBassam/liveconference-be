@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
 
@@ -28,7 +29,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class Chat extends RepresentationModel<Chat> {
+public class Chat extends RepresentationModel<Chat> implements Serializable {
+
+    @Transient
+    private static final long serialVersionUID = 249785431218787542L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

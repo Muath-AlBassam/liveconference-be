@@ -9,6 +9,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 
@@ -27,7 +29,10 @@ import java.util.Set;
 @RequiredArgsConstructor
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class Category extends RepresentationModel<Category> {
+public class Category extends RepresentationModel<Category> implements Serializable {
+
+    @Transient
+    private static final long serialVersionUID = 94274512355714L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -37,6 +42,7 @@ public class Category extends RepresentationModel<Category> {
     private Long id;
 
     @Column(name = "category", nullable = false, columnDefinition = "TEXT")
+    @NotBlank
     private String name;
 
     @ManyToOne

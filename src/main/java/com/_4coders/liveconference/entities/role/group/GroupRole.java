@@ -2,7 +2,6 @@ package com._4coders.liveconference.entities.role.group;
 
 import com._4coders.liveconference.entities.permission.group.GroupPermission;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -11,6 +10,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
@@ -30,7 +31,12 @@ import java.util.UUID;
 @ToString
 @RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class GroupRole extends RepresentationModel<GroupRole> {
+public class GroupRole extends RepresentationModel<GroupRole> implements Serializable {
+
+    @Transient
+    private static final long serialVersionUID = -572121892109871324L;
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
@@ -43,13 +49,13 @@ public class GroupRole extends RepresentationModel<GroupRole> {
     private UUID uuid;
 
     @Column(name = "name", unique = true, nullable = false, columnDefinition = "TEXT")
+    @NotBlank
     private String name;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "group_roles_group_permissions",
             joinColumns = @JoinColumn(name = "fk_group_roles_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "fk_group_permissions_id", referencedColumnName = "id"))
-    @JsonManagedReference
     private Set<GroupPermission> permissions;
 
 //    @ManyToOne //TODO change to Page or Flux

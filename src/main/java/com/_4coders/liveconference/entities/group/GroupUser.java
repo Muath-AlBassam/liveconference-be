@@ -2,7 +2,6 @@ package com._4coders.liveconference.entities.group;
 
 import com._4coders.liveconference.entities.role.group.GroupRole;
 import com._4coders.liveconference.entities.user.User;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -10,6 +9,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 
@@ -21,7 +21,10 @@ import java.util.Set;
 @RequiredArgsConstructor
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class GroupUser extends RepresentationModel<GroupUser> {
+public class GroupUser extends RepresentationModel<GroupUser> implements Serializable {
+
+    @Transient
+    private static final long serialVersionUID = 87984561897231234L;
 
     @EmbeddedId
     @EqualsAndHashCode.Include
@@ -37,11 +40,10 @@ public class GroupUser extends RepresentationModel<GroupUser> {
     @JoinColumn(name = "fk_group_id", referencedColumnName = "id", nullable = false, updatable = false)
     private Group group;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "groups_user_group_roles",
             joinColumns = @JoinColumn(name = "fk_groups_users_id", referencedColumnName = "fk_user_id"),
             inverseJoinColumns = @JoinColumn(name = "fk_group_roles_id", referencedColumnName = "id"))
-    @JsonManagedReference
     private Set<GroupRole> roles;
 
 

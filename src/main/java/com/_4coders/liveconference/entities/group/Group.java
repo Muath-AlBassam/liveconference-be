@@ -2,7 +2,7 @@ package com._4coders.liveconference.entities.group;
 
 
 import com._4coders.liveconference.entities.channel.Channel;
-import com._4coders.liveconference.entities.setteing.group.GroupSetting;
+import com._4coders.liveconference.entities.setting.group.GroupSetting;
 import com._4coders.liveconference.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -13,6 +13,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
@@ -25,7 +27,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class Group extends RepresentationModel<Group> {
+public class Group extends RepresentationModel<Group> implements Serializable {
+
+    @Transient
+    private static final long serialVersionUID = 12489724167512314L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -39,6 +44,7 @@ public class Group extends RepresentationModel<Group> {
     private UUID uuid;
 
     @Column(name = "name", nullable = false, columnDefinition = "TEXT")
+    @NotBlank
     private String name;
 
     @Column(name = "description", columnDefinition = "TEXT")
@@ -62,7 +68,7 @@ public class Group extends RepresentationModel<Group> {
     @OneToMany(mappedBy = "ownerGroup")
     private Set<Channel> channels;
 
-    @OneToOne(mappedBy = "group", cascade = CascadeType.REMOVE)
+    @OneToOne(mappedBy = "group", cascade = {CascadeType.REMOVE, CascadeType.PERSIST})
     private GroupSetting groupSetting;
 
     //TODO add default channel

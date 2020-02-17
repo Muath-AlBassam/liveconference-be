@@ -11,6 +11,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
 
@@ -22,7 +24,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class Channel extends RepresentationModel<Channel> {
+public class Channel extends RepresentationModel<Channel> implements Serializable {
+
+    @Transient
+    private static final long serialVersionUID = -784459713871244L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -36,6 +41,7 @@ public class Channel extends RepresentationModel<Channel> {
     private UUID uuid;
 
     @Column(name = "name", nullable = false, columnDefinition = "TEXT")
+    @NotBlank
     private String name;
 
     @Column(name = "creation_date", nullable = false, updatable = false)

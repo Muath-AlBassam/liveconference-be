@@ -6,6 +6,7 @@ import lombok.*;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.UUID;
 
 /**
@@ -22,7 +23,10 @@ import java.util.UUID;
 @ToString
 @RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class GroupPermission extends RepresentationModel<GroupPermission> {
+public class GroupPermission extends RepresentationModel<GroupPermission> implements Serializable {
+
+    @Transient
+    private static final long serialVersionUID = 72123712318792318L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -38,7 +42,7 @@ public class GroupPermission extends RepresentationModel<GroupPermission> {
     /**
      * the action this permission allows
      */
-    @Column(name = "action", nullable = false, unique = true, columnDefinition = "TEXT")
+    @Column(name = "action", nullable = false, unique = true, updatable = false, columnDefinition = "TEXT")
     private String action;
 
 
