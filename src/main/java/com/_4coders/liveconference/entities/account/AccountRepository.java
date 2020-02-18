@@ -20,6 +20,9 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     boolean existsAccountByEmail(String email);
 
+    boolean existsAccountByEmailOrPhoneNumber(String email, String phoneNumber);//may user native to get a number
+    // indicating wither the error cause from email or number or non
+
     boolean existsAccountByUuid(UUID uuid);
 
     @Query(value = "select case\n" +

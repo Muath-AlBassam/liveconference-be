@@ -201,6 +201,20 @@ public class AccountService {
     }
 
     /**
+     * Returns {@code boolean} if an {@code Account} exist with the given {@code email} or {@code PhoneNumber}
+     *
+     * @param email the {@code email} to lock for
+     * @return true if an {@code Account} with given {@code email} or {@code PhoneNumber} was found, false otherwise
+     */
+    public boolean existAccountByEmailOrPhoneNumber(String email, String phoneNumber) {
+        log.atFinest().log("Checking whether an Account with the given Email [%s] or the given PhoneNumber [%s] exist",
+                email, phoneNumber);
+        final boolean toReturn = accountRepository.existsAccountByEmailOrPhoneNumber(email, phoneNumber);
+        log.atFinest().log("Result of Account existence checking [%b]", toReturn);
+        return toReturn;
+    }
+
+    /**
      * Returns {@code boolean} if an {@code Account} exist with the  given {@code UUID}
      *
      * @param uuid the {@code UUID} to lock for
@@ -270,7 +284,7 @@ public class AccountService {
      * Registers the given {@code Account}
      *
      * @param toRegister the {@code Account} to register
-     * @throws AccountFoundException        when an {@code Account} with the same given {@code Email} exist
+     * @throws AccountFoundException        when an {@code Account} with the same given {@code Email} or {@code PhoneNumber} exist
      * @throws UUIDUniquenessException      when the generation of unique {@code UUID} has failed
      * @throws InvalidIpAddressException    when {@code IpAddress} retrieval throws {@code InvalidIpAddressException}
      * @throws APIKeyNotProvidedException   when {@code IpAddress} retrieval throws {@code APIKeyNotProvidedException}
@@ -285,10 +299,13 @@ public class AccountService {
         log.atFinest().log("Initiate Account registering with Account information as follow: [%s]", toRegister);
         log.atFinest().log("Checking whether the given Email from the Account: [%s] exist or not",
                 toRegister.getEmail());
-        if (existAccountByEmail(toRegister.getEmail())) {//don't create account
-            log.atFiner().log("An Account with the Email: [%s] already exist", toRegister.getEmail());
+        if (existAccountByEmailOrPhoneNumber(toRegister.getEmail(), toRegister.getPhoneNumber())) {//don't create account
+            //TODO update the query to know which is the cause of the error is it the email or phoneNumber
+            log.atFiner().log("An Account with the Email: [%s] or PhoneNumber [%s] already exist",
+                    toRegister.getEmail(), toRegister.getPhoneNumber());
             log.atFiner().log("Throwing the exception [$s]", AccountFoundException.class);
-            throw new AccountFoundException(String.format("An Account with email [%s] already exist", toRegister.getEmail()),
+            throw new AccountFoundException(String.format("An Account with Email [%s] or PhoneNumber [%s] already exist",
+                    toRegister.getEmail(), toRegister.getPhoneNumber()),
                     toRegister);
         } else {// create
             log.atFinest().log("No Account with Email: [%s] was found", toRegister.getEmail());
