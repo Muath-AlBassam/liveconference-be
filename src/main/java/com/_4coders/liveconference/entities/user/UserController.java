@@ -27,6 +27,7 @@ import java.util.UUID;
 @Flogger
 @Validated
 @RequestMapping("/flogger/users")
+@CrossOrigin(origins = "*")
 public class UserController {
     @Autowired
     private UserService userService;

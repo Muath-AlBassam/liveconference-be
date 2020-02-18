@@ -27,6 +27,7 @@ import java.util.UUID;
 @Flogger
 @RequestMapping(value = "/flogger/accounts", produces = {"application/json", "application/hal+json"})
 @Validated
+@CrossOrigin(origins = "*")
 public class AccountController {
 
     @Autowired

@@ -21,18 +21,18 @@ server:
 #    min-response-size: 1024 #1KB
 spring:
   profiles: development
-  session:
-    store-type: redis
-    redis:
-      cleanup-cron: 0 0 6 * * ? # at 0 sec 0 min hour 6 all days of month all months any day of the week
+#  session:
+#    store-type: redis
+#    redis:
+#      cleanup-cron: 0 0 6 * * ? # at 0 sec 0 min hour 6 all days of month all months any day of the week
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
   datasource:
-    url: jdbc:postgresql://localhost:5433/4CoderPrototype
-    username: 4Coder
-    password: 4Coder
+    url: jdbc:postgresql://localhost:5432/live_conference
+    username: Muath Albassam
+    password: Muath20111418
   jackson:
     serialization:
       INDENT_OUTPUT: true
