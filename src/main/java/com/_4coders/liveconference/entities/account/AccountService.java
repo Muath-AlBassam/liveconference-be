@@ -1,13 +1,15 @@
 package com._4coders.liveconference.entities.account;
 
 import com._4coders.liveconference.entities.account.accountIpAddress.AccountIpAddressService;
+import com._4coders.liveconference.entities.account.activation.AccountActivation;
+import com._4coders.liveconference.entities.account.activation.AccountActivationService;
 import com._4coders.liveconference.entities.address.Address;
+import com._4coders.liveconference.entities.global.MailSendingService;
 import com._4coders.liveconference.entities.ipAddress.IpAddress;
 import com._4coders.liveconference.entities.ipAddress.IpAddressService;
 import com._4coders.liveconference.entities.role.system.SystemRoleService;
 import com._4coders.liveconference.entities.user.UserService;
-import com._4coders.liveconference.exception.account.AccountFoundException;
-import com._4coders.liveconference.exception.account.AccountNotFoundException;
+import com._4coders.liveconference.exception.account.*;
 import com._4coders.liveconference.exception.common.UUIDUniquenessException;
 import com._4coders.liveconference.exception.ipAddress.*;
 import lombok.extern.flogger.Flogger;
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -30,6 +33,12 @@ public class AccountService {
 
     @Autowired
     private AccountIpAddressService accountIpAddressService;
+
+    @Autowired
+    private AccountActivationService accountActivationService;
+
+    @Autowired
+    private MailSendingService mailSendingService;
 
     @Autowired
     private UserService userService;
@@ -201,16 +210,20 @@ public class AccountService {
     }
 
     /**
-     * Returns {@code boolean} if an {@code Account} exist with the given {@code email} or {@code PhoneNumber}
+     * Checks wither an {@link Account} exists by the given {@code Email} and {@code PhoneNumber}
      *
-     * @param email the {@code email} to lock for
-     * @return true if an {@code Account} with given {@code email} or {@code PhoneNumber} was found, false otherwise
+     * @param email       the {@code email} to look for
+     * @param phoneNumber the {@code PhoneNumber} to look for
+     * @return 0 if no {@link Account} exists with the given @code Email} and {@code PhoneNumber}<br/>
+     * 1 if an {@link Account} exists with the given {@code email} only <br/>
+     * 2 if an {@link Account} exists with the given {@code PhoneNumber} only <br/>
+     * 3 if an {@link Account} exists with the given {@code Email} and {@code PhoneNumber}
      */
-    public boolean existAccountByEmailOrPhoneNumber(String email, String phoneNumber) {
-        log.atFinest().log("Checking whether an Account with the given Email [%s] or the given PhoneNumber [%s] exist",
+    public int existAccountByEmailOrPhoneNumber(String email, String phoneNumber) {
+        log.atFinest().log("Checking whether an Account with the given Email [%s] and PhoneNumber [%s] exists",
                 email, phoneNumber);
-        final boolean toReturn = accountRepository.existsAccountByEmailOrPhoneNumber(email, phoneNumber);
-        log.atFinest().log("Result of Account existence checking [%b]", toReturn);
+        final int toReturn = accountRepository.existAccountByEmailOrPhoneNumber(email, phoneNumber);
+        log.atFinest().log("Result of Account existence checking [%d]", toReturn);
         return toReturn;
     }
 
@@ -234,6 +247,29 @@ public class AccountService {
      */
     public void updateLastLoginDate(Account account) {
         accountRepository.updateLastLoginDate(account.getId(), LocalDateTime.now());
+    }
+
+    public Account activateAccount(String email, String activationCode) throws AccountNotFoundException,
+            AccountAlreadyActivatedException, AccountActivationCodeMatchException {
+        log.atFinest().log("Activating the Account with Email [%s] with the given Code [%s]", email, activationCode);
+        log.atFinest().log("Fetching an Account with the given email");
+        Account fetchedAccount = getAccountByEmail(email);
+        if (fetchedAccount == null) {
+            log.atFinest().log("Throwing AccountNotFoundException as there Exists no Account with the given Email");
+            throw new AccountNotFoundException(String.format("No Account was found with the Email [%s]", email), email);
+        } else {
+            if (fetchedAccount.getIsActivated()) {
+                log.atFinest().log("Throwing AccountAlreadyActivatedException as we're trying to activate an already " +
+                        "activated Account");
+                throw new AccountAlreadyActivatedException(String.format("The given Account is already activated, account" +
+                        " email [%s]", fetchedAccount.getEmail()));
+            } else {
+                accountActivationService.activateAccountActivation(fetchedAccount, activationCode);
+                fetchedAccount.setIsActivated(true);
+                return updateAccount(fetchedAccount);
+
+            }
+        }
     }
 
     /**
@@ -295,26 +331,93 @@ public class AccountService {
     public Account registerAccount(Account toRegister, HttpServletRequest request)
             throws AccountFoundException, UUIDUniquenessException, InvalidIpAddressException,
             APIKeyNotProvidedException, APIKeyQuotaExceededException, IpProviderUnknownException,
-            IpAddressFoundException, HarmfulIpAddressException {
+            IpAddressFoundException, HarmfulIpAddressException, AccountAlreadyActivatedException {
         log.atFinest().log("Initiate Account registering with Account information as follow: [%s]", toRegister);
         log.atFinest().log("Checking whether the given Email from the Account: [%s] exist or not",
                 toRegister.getEmail());
-        if (existAccountByEmailOrPhoneNumber(toRegister.getEmail(), toRegister.getPhoneNumber())) {//don't create account
-            //TODO update the query to know which is the cause of the error is it the email or phoneNumber
-            log.atFiner().log("An Account with the Email: [%s] or PhoneNumber [%s] already exist",
-                    toRegister.getEmail(), toRegister.getPhoneNumber());
-            log.atFiner().log("Throwing the exception [$s]", AccountFoundException.class);
-            throw new AccountFoundException(String.format("An Account with Email [%s] or PhoneNumber [%s] already exist",
-                    toRegister.getEmail(), toRegister.getPhoneNumber()),
-                    toRegister);
-        } else {// create
-            log.atFinest().log("No Account with Email: [%s] was found", toRegister.getEmail());
-            return initiateAccountRequiredValues(toRegister, request);
-
+        switch (existAccountByEmailOrPhoneNumber(toRegister.getEmail(), toRegister.getPhoneNumber())) {
+            case 1://Email already exists
+                log.atFiner().log("An Account with the Email: [%s] already exist",
+                        toRegister.getEmail());
+                log.atFiner().log("Throwing the exception [$s]", AccountFoundByEmailException.class);
+                throw new AccountFoundByEmailException(String.format("An Account with Email [%s] already exist",
+                        toRegister.getEmail()), toRegister.getEmail());
+            case 2://PhoneNumber exist already
+                log.atFiner().log("An Account with the PhoneNumber: [%s] already exist",
+                        toRegister.getPhoneNumber());
+                log.atFiner().log("Throwing the exception [$s]", AccountFoundByPhoneNumberException.class);
+                throw new AccountFoundByPhoneNumberException(String.format("An Account with PhoneNumber [%s] already exist",
+                        toRegister.getPhoneNumber()), toRegister.getPhoneNumber());
+            case 3://both
+                log.atFiner().log("An Account with the Email: [%s] and PhoneNumber [%s] already exist",
+                        toRegister.getEmail(), toRegister.getPhoneNumber());
+                log.atFiner().log("Throwing the exception [$s]", AccountFoundException.class);
+                throw new AccountFoundException(String.format("An Account with Email [%s] and PhoneNumber [%s] " +
+                                "already exist",
+                        toRegister.getEmail(), toRegister.getPhoneNumber()));
+            default:
+                log.atFinest().log("No Account with Email: [%s] was found", toRegister.getEmail());
+                return persistNewAccount(toRegister, request);
         }
     }
 
-    private Account initiateAccountRequiredValues(Account toRegister, HttpServletRequest request) throws UUIDUniquenessException, InvalidIpAddressException,
+    public Account updateAccount(Account account) {
+        return accountRepository.save(account);
+    }
+
+    /**
+     * Generates new Activation code for the given {@link Account} {@code Email}
+     *
+     * @param emailToSendTo the {@code Email} of the {@link Account}
+     * @return true if the code was generated and an email with the code was sent
+     * @throws AccountNotFoundException if no {@link Account} exists with the given {@code Email}
+     * @throws MessagingException       if an error occurs while sending the email
+     */
+    public boolean generateNewActivationCode(String emailToSendTo) throws AccountNotFoundException,
+            MessagingException, AccountAlreadyActivatedException {
+        Account fetchedAccount = accountRepository.getAccountByEmailAndIsBlockedIsFalse(emailToSendTo);
+        if (fetchedAccount == null) {
+            log.atFinest().log("Throwing AccountNotFoundException as there exists no account with the given Email " +
+                            "[%s] or it's blocked ",
+                    emailToSendTo);
+            throw new AccountNotFoundException(String.format("No account was found with the given Email [%s] or it's blocked ",
+                    emailToSendTo), emailToSendTo);
+        } else {
+            final String activationNewCodeReason = "Generating new code for Account";
+            AccountActivation accountActivation = accountActivationService.setActivationForAccount(fetchedAccount, activationNewCodeReason);
+            mailSendingService.sendActivationCodeEmail(fetchedAccount, accountActivation);
+            return true;
+        }
+    }
+
+    private Account persistNewAccount(Account toRegister, HttpServletRequest request) throws IpAddressFoundException, AccountAlreadyActivatedException {
+        initiateAccountRequiredValues(toRegister, request);
+        log.atFinest().log("Persisting the Account [%s]", toRegister);
+        Account toReturn = accountRepository.save(toRegister);
+        log.atFiner().log("The Account with Email [%s] has been registered", toReturn.getEmail());
+        log.atFinest().log("Values of the Account: [%s]", toReturn);
+          /*
+            //TODO enable in prod
+                log.atFinest().log("Saving an AccountIpAddress");
+                AccountIpAddress saveAccountIpAddress = accountIpAddressService.saveAccountIpAddress(toReturn, ipAddress);
+                log.atFinest().log("Saved an AccountIpAddress with data [%s], Account [%s] and IpAddress [%s]",
+                        saveAccountIpAddress, saveAccountIpAddress.getAccount(), saveAccountIpAddress.getIpAddress());
+                log.atFinest().log("Adding the saved AccountIpAddress to the Account");
+                toRegister.setIpAddresses(new HashSet<>());
+                toReturn.getIpAddresses().add(saveAccountIpAddress);*/
+
+        final String activationReason = "Activation Code for new Account";
+        AccountActivation accountActivation = accountActivationService.setActivationForAccount(toReturn, activationReason);
+        try {
+            mailSendingService.sendActivationCodeEmail(toRegister, accountActivation);
+        } catch (MessagingException ex) {//TODO solve
+            log.atSevere().log(ex.getCause().getMessage());
+        }
+
+        return toReturn;
+    }
+
+    private void initiateAccountRequiredValues(Account toRegister, HttpServletRequest request) throws UUIDUniquenessException, InvalidIpAddressException,
             APIKeyNotProvidedException, APIKeyQuotaExceededException, IpProviderUnknownException,
             IpAddressFoundException, HarmfulIpAddressException {
         log.atFinest().log("Starting to initiate required values");
@@ -358,22 +461,8 @@ public class AccountService {
             toRegister.setRoles(new HashSet<>());
             toRegister.getRoles().add(systemRoleService.getRoleByName("ROLE_USER"));
             log.atFinest().log("All data has been initialized - except IpAddress relation");
-            log.atFinest().log("Persisting the Account [%s]", toRegister);
-            Account toReturn = accountRepository.save(toRegister);
-            log.atFiner().log("The Account with Email [%s] has been registered", toReturn.getEmail());
-            log.atFinest().log("Values of the Account: [%s]", toReturn);
 
-            /*
-            //TODO enable in prod
-                log.atFinest().log("Saving an AccountIpAddress");
-                AccountIpAddress saveAccountIpAddress = accountIpAddressService.saveAccountIpAddress(toReturn, ipAddress);
-                log.atFinest().log("Saved an AccountIpAddress with data [%s], Account [%s] and IpAddress [%s]",
-                        saveAccountIpAddress, saveAccountIpAddress.getAccount(), saveAccountIpAddress.getIpAddress());
-                log.atFinest().log("Adding the saved AccountIpAddress to the Account");
-                toRegister.setIpAddresses(new HashSet<>());
-                toReturn.getIpAddresses().add(saveAccountIpAddress);*/
 
-            return toReturn;
         }
     }
 
@@ -386,4 +475,5 @@ public class AccountService {
         }
         return ipAddress;
     }
+
 }

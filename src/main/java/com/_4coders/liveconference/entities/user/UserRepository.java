@@ -18,6 +18,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     User getUserByAccount_IdAndIsDeletedIsFalse(Long accountId);
 
+    User getUserByUserNameAndAccount_IdAndIsDeletedIsFalse(String userName, Long accountId);
+
     User getUserByUserNameAndIsDeletedIsFalse(String userName);
 
     User getUserByUuidAndIsDeletedIsFalse(UUID uuid);
@@ -32,8 +34,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsUserByAccount_IdAndIsDeletedIsFalse(Long accountId);
 
+
     int countUsersByAccount_IdAndIsDeletedIsFalse(Long id);
 
     void deleteUserByAccount_IdAndIsDeletedIsFalse(Long accountId);
+
 
 }

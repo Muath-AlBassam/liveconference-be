@@ -5,9 +5,11 @@ import lombok.Getter;
 import lombok.extern.flogger.Flogger;
 
 /**
- * Indicate that an {@code Account} was found with the same given data, this {@code Exception} should be thrown when
- * an {@code Account} with the given data exist when it shouldn't
- * </br>(e.x: in registration an account was found with the same email as the given one)
+ * Indicate that an {@link Account} was found with the same given data, this {@link Exception} should be thrown when
+ * an {@link Account} with the given data exist when it shouldn't
+ * <br/>(e.x: in registration an account was found with the same email as the given one)
+ * <br/>
+ * This {@link Exception} is general for more specific cases see: {@link AccountFoundByEmailException} and
  *
  * @author Abdulmajid
  * @version 0.0.1
@@ -16,18 +18,9 @@ import lombok.extern.flogger.Flogger;
 @Getter
 @Flogger
 public class AccountFoundException extends RuntimeException {
-    private Account accountFound;
-
-
-    public AccountFoundException(String message, Account accountFound) {
-        super(message);
-        log.atFine().log("AccountFoundException was thrown with message [%s] and Account data [%s]", message,
-                accountFound);
-        this.accountFound = accountFound;
-    }
 
     public AccountFoundException(String message) {
         super(message);
-        log.atFine().log("AccountFoundException was thrown with message [%s] and no Account was given", message);
+        log.atFine().log("AccountFoundException was thrown with message [%s]", message);
     }
 }

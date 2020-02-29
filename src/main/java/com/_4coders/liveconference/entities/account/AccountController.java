@@ -1,7 +1,11 @@
 package com._4coders.liveconference.entities.account;
 
+import com._4coders.liveconference.entities.account.activation.AccountActivation;
 import com._4coders.liveconference.entities.address.Address;
+import com._4coders.liveconference.entities.user.UUIDConstraint;
 import com._4coders.liveconference.entities.user.UserService;
+import com._4coders.liveconference.exception.account.AccountActivationCodeMatchException;
+import com._4coders.liveconference.exception.account.AccountAlreadyActivatedException;
 import com._4coders.liveconference.exception.account.AccountFoundException;
 import com._4coders.liveconference.exception.account.AccountNotFoundException;
 import com._4coders.liveconference.exception.common.UUIDUniquenessException;
@@ -16,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
@@ -37,13 +42,12 @@ public class AccountController {
     @Autowired
     private UserService userService;
 
-
     /**
      * Register an {@code Account} if possible
      *
      * @param toRegister the {@code Account} to register
-     * @return HTTP CREATED(201) if the {@code Account} got registered</br>
-     * HTTP BAD_REQUEST(400) if an {@code Account} with the same {@code email} exist</br>
+     * @return HTTP CREATED(201) if the {@code Account} got registered<br/>
+     * HTTP BAD_REQUEST(400) if an {@code Account} with the same {@code email} or {@code PhoneNumber} exist<br/>
      * HTTP FORBIDDEN (403) if the requester {@code IpAddress} is harmful
      * HTTP INTERNAL_SERVER_ERROR(500) if {@code UUIDUniquenessException} was thrown
      */
@@ -54,7 +58,7 @@ public class AccountController {
         log.atFiner().log("Account registration was received with values [%s]", toRegister);
         try {
             return ResponseEntity.status(HttpStatus.CREATED).body(accountService.registerAccount(toRegister, request));
-        } catch (AccountFoundException | InvalidIpAddressException ex) {
+        } catch (AccountFoundException | InvalidIpAddressException | AccountAlreadyActivatedException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         } catch (HarmfulIpAddressException ex) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
@@ -63,6 +67,44 @@ public class AccountController {
         }
     }
 
+    /**
+     * Updates the {@link AccountActivation} for the given {@code Email}
+     *
+     * @return HTTP OK(200) if all went well <br/>
+     * HTTP BAD_REQUEST(400) if no {@link Account} exists with the given email or it's blocked <br/>
+     * HTTP INTERNAL_SERVER_ERROR(500) if the email with the code wasn't sent
+     */
+    @PostMapping(value = "/activation_code/update", params = "email")
+    public ResponseEntity<Boolean> generateNewActivationCode(@RequestParam("email") @Email String emailToSendTo) {
+        log.atFinest().log("Account code regeneration was received for email [%s]", emailToSendTo);
+        try {
+            boolean result = accountService.generateNewActivationCode(emailToSendTo);
+            return ResponseEntity.ok(true);
+        } catch (AccountNotFoundException | AccountAlreadyActivatedException ex) {
+            return ResponseEntity.badRequest().body(false);
+        } catch (MessagingException ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+        }
+    }
+
+    /**
+     * Activates the {@link Account} with the given {@code Email} by the given {@code Code}
+     *
+     * @return HTTP OK(200) if all went well,{@link Account} gets activated <br/>
+     * HTTP BAD_REQUEST(400) if no {@link Account} exists with the given email, it's blocked, the {@link Account}
+     * is already activated or the given {@code Code} is invalid<br/>
+     */
+    @PostMapping(value = "/activation_code", params = {"email", "activationCode"})
+    public ResponseEntity<Account> activateAccount(@RequestParam("email") @Email String email, @RequestParam(
+            "activationCode") String activationCode) {
+        log.atFinest().log("Account activation was received for email [%s] with code [%s]", email, activationCode);
+        try {
+            Account activatedAccount = accountService.activateAccount(email, activationCode);
+            return ResponseEntity.ok(activatedAccount);
+        } catch (AccountNotFoundException | AccountAlreadyActivatedException | AccountActivationCodeMatchException ex) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
 
     /**
      * Gets the current logged in {@code Account} from the {@code principal}
@@ -89,7 +131,7 @@ public class AccountController {
      * Gets an {@code Account} by the given {@code email}
      *
      * @param email the {@code email} to look for (comes in the form .../accounts?email=XXX)
-     * @return HTTP OK(200) if an {@code Account} with the given {@code email} was found</br>
+     * @return HTTP OK(200) if an {@code Account} with the given {@code email} was found<br/>
      * otherwise HTTP BAD_REQUEST(400)
      */
     @GetMapping(params = "email")
@@ -110,11 +152,11 @@ public class AccountController {
      * Gets an {@code Account} by the given {@code uuid}
      *
      * @param uuid the {@code uuid} to look for
-     * @return HTTP OK(200) if an {@code Account} with the given {@code uuid} was found</br>
+     * @return HTTP OK(200) if an {@code Account} with the given {@code uuid} was found<br/>
      * otherwise HTTP BAD_REQUEST(400)
      */
     @GetMapping(params = "uuid")
-    public ResponseEntity<Account> getAccountByUuid(@RequestParam(value = "uuid") UUID uuid) {
+    public ResponseEntity<Account> getAccountByUuid(@RequestParam(value = "uuid") @UUIDConstraint UUID uuid) {
         log.atFiner().log("Account retrieval by UUID [%s] was received", uuid);
         Account toReturn = accountService.getAccountByUuid(uuid);
         if (toReturn == null) {
@@ -167,7 +209,7 @@ public class AccountController {
 
     @PatchMapping(value = "/update_password", params = "uuid")
     @Transactional
-    public ResponseEntity<String> accountPasswordUpdateByUuid(@RequestParam(value = "uuid") UUID accountUuid,
+    public ResponseEntity<String> accountPasswordUpdateByUuid(@RequestParam(value = "uuid") @UUIDConstraint UUID accountUuid,
                                                               @RequestBody @NotBlank String newPassword) {
         log.atFinest().log("Request for updating password for Account with UUID [%s]", accountUuid);
         try {
@@ -197,7 +239,7 @@ public class AccountController {
 
     @PatchMapping(value = "/update", params = {"uuid", "new_email"})
     @Transactional
-    public ResponseEntity<String> accountEmailUpdateByUuid(@RequestParam(value = "uuid") UUID accountUuid,
+    public ResponseEntity<String> accountEmailUpdateByUuid(@RequestParam(value = "uuid") @UUIDConstraint UUID accountUuid,
                                                            @RequestParam("new_email") @Email String newEmail) {
         log.atFinest().log("Request for updating email for Account with UUID [%s]", accountUuid);
         try {

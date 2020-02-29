@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 
 @Component
 @Flogger
-final class MappingSortPropertiesToSchemaProperties {
-    private MappingSortPropertiesToSchemaProperties() {
+final class SortMappingUtil {
+    private SortMappingUtil() {
     }
 
     /**
@@ -25,7 +25,7 @@ final class MappingSortPropertiesToSchemaProperties {
     public static Sort userMappingSortPropertiesToSchemaProperties(Sort sort) throws MappingSortPropertiesToSchemaPropertiesException {
         log.atFinest().log("Starting the mapping of User Properties to Schema properties");
         List<Sort.Order> orders = sort.get().map(order -> {
-            if (order.getDirection().isAscending()) {
+            if (order.isAscending()) {
                 return Sort.Order.asc(userSortPropertiesToSchemaProperties(order.getProperty()));
             } else {
                 return Sort.Order.desc(userSortPropertiesToSchemaProperties(order.getProperty()));
@@ -100,7 +100,7 @@ final class MappingSortPropertiesToSchemaProperties {
     public static Sort accountIpAddressMappingSortPropertiesToSchemaProperties(Sort sort) throws MappingSortPropertiesToSchemaPropertiesException {
         log.atFinest().log("Starting the mapping of AccountIpAddress Properties to Schema properties");
         List<Sort.Order> orders = sort.get().map(order -> {
-            if (order.getDirection().isAscending()) {
+            if (order.isAscending()) {
                 return Sort.Order.asc(accountIpAddressSortPropertiesToSchemaProperties(order.getProperty()));
             } else {
                 return Sort.Order.desc(accountIpAddressSortPropertiesToSchemaProperties(order.getProperty()));
