@@ -64,15 +64,15 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     boolean existsAccountByUuid(UUID uuid);
 
     @Query(value = "select case\n" +
-            "           when count(1) > 0 then false\n" +
-            "           when (select count(1) from accounts where accounts.id = :account_to_lock_for) > 0 then true\n" +
+            "           when count(1) > 0 then true\n" +
+            "           when (select count(1) from accounts where accounts.id = :account_to_lock_for) > 0 then false\n" +
             "           else false end\n" +
             "from accounts\n" +
             "         left join system_blocked_accounts sba on accounts.id = sba.fk_account_id\n" +
             "where accounts.id = :account_to_lock_for\n" +
             "  and accounts.is_activated = true\n" +
             "  and ((sba.is_blocked = false and sba.is_permanent = false) or (sba.is_blocked = false and sba.is_permanent IS NULL)\n" +
-            "    or (sba.is_blocked IS NULL and sba.is_permanent IS NULL));\n", nativeQuery = true)
+            "    or (sba.is_blocked IS NULL and sba.is_permanent IS NULL));", nativeQuery = true)
     boolean existsAccountByIdAndIsActivatedIsTrueAndIsBlockedIsFalse(@Param("account_to_lock_for") Long accountId);
 
     boolean existsAccountByIdAndIsActivatedIsTrue(Long accountId);
