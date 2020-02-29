@@ -9,12 +9,13 @@ import com._4coders.liveconference.exception.sort.MappingSortPropertiesToSchemaP
 import com._4coders.liveconference.exception.user.MaximumNumberOfUserReachedException;
 import com._4coders.liveconference.exception.user.UserFoundException;
 import com._4coders.liveconference.exception.user.UserNotFoundException;
-import com._4coders.liveconference.util.sort.SortDefaultUtil;
+import com._4coders.liveconference.util.sort.SortUtil;
 import lombok.extern.flogger.Flogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -75,7 +76,14 @@ public class UserService {
                     toRegister.setUserSetting(userSetting);
                     log.atFinest().log("All data has been initiated, User info [%s]", toRegister);
                     log.atFinest().log("Persisting the User ...");
-                    toRegister = userRepository.saveAndFlush(toRegister);
+                    if (account.getDefaultUser() == null) {//mean no User has been created yet
+                        account.setDefaultUser(toRegister);
+                        account.setUsers(new HashSet<>());
+                    }
+                    account.getUsers().add(toRegister);
+                    toRegister = userRepository.saveAndFlush(toRegister);//todo update context after account update
+                    account.getUsers().add(toRegister);
+                    accountService.updateAccount(account);//TODO fix shall we update the lastModified date only?
                     log.atFinest().log("User got persisted, it's info [%s]", toRegister);
                     return toRegister;
                 }
@@ -84,6 +92,19 @@ public class UserService {
         }
     }
 
+    public User getNonDeletedUserByUserNameAndAccount(Account account, String userName) {
+        log.atFinest().log("Getting required User with name [%s] and Account Email [%s] and UUID [%s]",
+                userName, account.getEmail(), account.getUuid());
+        User fetchedUser = userRepository.getUserByUserNameAndAccount_IdAndIsDeletedIsFalse(userName, account.getId());
+        log.atFinest().log("Was a User fetched from DB with the given data: [%b]", fetchedUser != null);
+        if (fetchedUser == null) {
+            log.atFinest().log("Throwing UserNotFoundException as there is no User with the given account id [%d] and" +
+                    " userName [%s] in DB", account.getId(), userName);
+            throw new UserNotFoundException("No User with the given data exists in DB", userName);
+        } else {
+            return fetchedUser;
+        }
+    }
     //todo check after chat and message has been implemented if any thing changes
 
     /**
@@ -271,7 +292,7 @@ public class UserService {
             throw new AccountNotFoundException(String.format("No Account was found with the given Email [%s]", email), email);
         } else {
             log.atFinest().log("Checking that Sort is sorted or not and if not getting the default sort");
-            sort = SortDefaultUtil.defaultUserSortIfNotSorted(sort);
+            sort = SortUtil.userSortMapping(sort);
             log.atFinest().log("Fetching Users...");
             Set<User> toReturn = userRepository.getUsersByAccount_EmailAndIsDeletedIsFalse(email, sort);
             log.atFinest().log("Result of Users fetching is [%s]", toReturn);
@@ -294,7 +315,7 @@ public class UserService {
                     uuid);
         } else {
             log.atFinest().log("Checking that Sort is sorted or not and if not getting the default sort");
-            sort = SortDefaultUtil.defaultUserSortIfNotSorted(sort);
+            sort = SortUtil.userSortMapping(sort);
             log.atFinest().log("Fetching Users...");
             Set<User> toReturn = userRepository.getUsersByAccount_UuidAndIsDeletedIsFalse(uuid, sort);
             log.atFinest().log("Result of Users fetching is [%s]", toReturn);
@@ -316,7 +337,7 @@ public class UserService {
                     accountId);
         } else {
             log.atFinest().log("Checking that Sort is sorted or not and if not getting the default sort");
-            sort = SortDefaultUtil.defaultUserSortIfNotSorted(sort);
+            sort = SortUtil.userSortMapping(sort);
             log.atFinest().log("Fetching Users...");
             Set<User> toReturn = userRepository.getUsersByAccount_IdAndIsDeletedIsFalse(accountId, sort);
             log.atFinest().log("Result of Users fetching is [%s]", toReturn);

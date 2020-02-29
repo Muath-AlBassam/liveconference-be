@@ -1,5 +1,6 @@
 package com._4coders.liveconference.entities.user;
 
+import com._4coders.liveconference.entities.account.Account;
 import com._4coders.liveconference.entities.account.AccountDetails;
 import com._4coders.liveconference.exception.account.AccountNotFoundException;
 import com._4coders.liveconference.exception.common.UUIDUniquenessException;
@@ -31,16 +32,15 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    //TODO ADD UpdateUser
 
     /**
      * Creates new {@code User} for the currently logged in {@code Account}
      *
      * @param userName the name of the {@code User} to create
-     * @return HTTP OK(200) if the {@code User} was created </br>
+     * @return HTTP OK(200) if the {@code User} was created <br/>
      * HTTP BAD_REQUEST (400) if a {@code User} exists with the same give {@code UserName} or the
-     * MAXIMUM_NUMBER_OF_USERS_ALLOWED has been reached</br>
-     * HTTP FORBIDDEN (403) if an error occurred because of the given {@code Account} </br>
+     * MAXIMUM_NUMBER_OF_USERS_ALLOWED has been reached<br/>
+     * HTTP FORBIDDEN (403) if an error occurred because of the given {@code Account} <br/>
      * HTTP INTERNAL_SERVER_ERROR (500) if no unique {@code UUID} was found
      */
     @PostMapping(params = "userName")
@@ -70,7 +70,7 @@ public class UserController {
     /**
      * Gets the non deleted {@code Set of User} for the currently logged in {@code Account}
      *
-     * @return HTTP OK(200) with the data</br>
+     * @return HTTP OK(200) with the data<br/>
      * HTTP BAD_REQUEST(400) if the given {@code Sort} properties are unknown
      */
     @GetMapping
@@ -91,7 +91,7 @@ public class UserController {
      * Gets the non deleted {@code Set of User} for an {@code Account} by the given {@code email}
      *
      * @param email the {@code email} fpr the {@code Account}
-     * @return HTTP OK(200) with the data</br>
+     * @return HTTP OK(200) with the data<br/>
      * HTTP BAD_REQUEST(400) if the given {@code Sort} properties are unknown or no {@code Account} was found the given
      * {@code Email}
      */
@@ -112,12 +112,12 @@ public class UserController {
      * Gets the non deleted {@code Set of User} for an {@code Account} by the given {@code uuid}
      *
      * @param uuid the {@code uuid} fpr the {@code Account}
-     * @return HTTP OK(200) with the data</br>
+     * @return HTTP OK(200) with the data<br/>
      * HTTP BAD_REQUEST(400) if the given {@code Sort} properties are unknown or no {@code Account} was found the given
      * {@code Email}
      */
     @GetMapping(value = "/account", params = "uuid")
-    public ResponseEntity<Set<User>> getNonDeletedAccountUsersByUuid(@RequestParam("uuid") UUID uuid, Sort sort) {
+    public ResponseEntity<Set<User>> getNonDeletedAccountUsersByUuid(@RequestParam("uuid") @UUIDConstraint UUID uuid, Sort sort) {
         log.atFiner().log("Request for getting Set of Users for Account with UUID [%s] and Sort [%s]", uuid, sort);
         try {
             return ResponseEntity.ok(userService.getNonDeletedUsersByUuid(uuid, sort));
@@ -128,14 +128,36 @@ public class UserController {
         }
     }
 
+    /**
+     * Gets the {@link User} with {@code userName} and not deleted for the currently logged in {@link Account}
+     *
+     * @param userName the name to search for
+     * @return HTTP OK(200) if the {@link User} was found <br/>
+     * HTTP BAD_REQUEST(400) if no {@link User} was found
+     */
+    @GetMapping(params = "userName")
+    @JsonView(UserViews.OwnerDetails.class)
+    public ResponseEntity<User> getNonDeletedUserByUserNameForCurrentlyLoggedInAccount(@AuthenticationPrincipal AccountDetails accountDetails, @NotBlank @RequestParam("userName") String userName) {
+        log.atFinest().log("Request for retrieving a User with name [%s] for the Account with Email [%s] and UUID " +
+                        "[%s] which is owned by it", userName, accountDetails.getAccount().getEmail(),
+                accountDetails.getAccount().getUuid());
+
+        try {
+            User fetchedUser = userService.getNonDeletedUserByUserNameAndAccount(accountDetails.getAccount(), userName);
+            return ResponseEntity.ok(fetchedUser);
+        } catch (UserNotFoundException ex) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
 
     /**
      * Deletes a {@code User} with the given {@code UserName} for the currently logged in {@code Account}
      *
      * @param userName the name of the {@code User} to delete
-     * @return HTTP OK(200) if the {@code User} was deleted </br>
-     * HTTP BAD_REQUEST (400) if no {@code User} exists with the same give {@code UserName}</br>
-     * HTTP FORBIDDEN (403) if an error occurred because of the given {@code Account} </br>
+     * @return HTTP OK(200) if the {@code User} was deleted <br/>
+     * HTTP BAD_REQUEST (400) if no {@code User} exists with the same give {@code UserName}<br/>
+     * HTTP FORBIDDEN (403) if an error occurred because of the given {@code Account} <br/>
      */
     @DeleteMapping(params = "userName")
     @Transactional
@@ -156,8 +178,8 @@ public class UserController {
             return ResponseEntity.badRequest().body(null);
         }
     }
-
     //only for support user, Secure
+
     @DeleteMapping(value = "/support", params = "userName")
     @Transactional
     public ResponseEntity<Boolean> deleteUserByUserName(@AuthenticationPrincipal AccountDetails accountDetail, @RequestParam("userName") @NotBlank String userName) {
@@ -173,11 +195,12 @@ public class UserController {
             return ResponseEntity.badRequest().body(null);
         }
     }
-
     //only for support user, Secure
+
     @DeleteMapping(value = "/support", params = "uuid")
     @Transactional
-    public ResponseEntity<Boolean> deleteUserByUserUuid(@AuthenticationPrincipal AccountDetails accountDetail, @RequestParam("uuid") UUID uuid) {
+    public ResponseEntity<Boolean> deleteUserByUserUuid(@AuthenticationPrincipal AccountDetails accountDetail,
+                                                        @RequestParam("uuid") @UUIDConstraint UUID uuid) {
         log.atFinest().log("Request for User Deletion by UUID was Received with UUID [%s] from Account with " +
                 "Email [%s] and UUID [%s]", uuid, accountDetail.getAccount().getEmail(), accountDetail.getAccount().getUuid());
         try {
@@ -194,7 +217,7 @@ public class UserController {
     @PatchMapping(params = {"userName", "uuid"})
     @JsonView(UserViews.OwnerDetails.class)
     @Transactional
-    public ResponseEntity<User> updateUserNameForCurrentlyLoggedInAccountByUserUuid(@AuthenticationPrincipal AccountDetails accountDetails, @RequestParam("userName") @NotBlank String userName, @RequestParam("uuid") UUID userUuid) {
+    public ResponseEntity<User> updateUserNameForCurrentlyLoggedInAccountByUserUuid(@AuthenticationPrincipal AccountDetails accountDetails, @RequestParam("userName") @NotBlank String userName, @RequestParam("uuid") @UUIDConstraint UUID userUuid) {
         log.atFinest().log("Request for UserName [%s] updating with User UUID [%s] for currently logged in Account " +
                 "with Email [%s] and UUID [%s]", userName, userUuid, accountDetails.getAccount().getEmail(), accountDetails.getAccount().getUuid());
 
@@ -214,7 +237,7 @@ public class UserController {
     }
 
     @PatchMapping(params = {"status", "uuid"})
-    public ResponseEntity<Boolean> updateUserStatusForCurrentlyLoggedInAccountByUserUuid(@AuthenticationPrincipal AccountDetails accountDetails, @RequestParam("status") @NotBlank String status, @RequestParam("uuid") UUID userUuid) {
+    public ResponseEntity<Boolean> updateUserStatusForCurrentlyLoggedInAccountByUserUuid(@AuthenticationPrincipal AccountDetails accountDetails, @RequestParam("status") @NotBlank String status, @RequestParam("uuid") @UUIDConstraint UUID userUuid) {
         log.atFinest().log("Request for User status [%s] updating with User UUID [%s] for currently logged in Account" +
                         "with Email [%s] and UUID [%s]", status, userUuid, accountDetails.getAccount().getEmail(),
                 accountDetails.getAccount().getUuid());
@@ -232,7 +255,6 @@ public class UserController {
             return ResponseEntity.badRequest().body(null);
         }
     }
-
 
     //TODO update users userName for support and userStatus to
     //TODO Add getUserByUserName and another by UUID

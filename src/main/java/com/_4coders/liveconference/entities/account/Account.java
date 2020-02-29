@@ -49,7 +49,7 @@ public class Account extends RepresentationModel<Account> implements Serializabl
     private static final long serialVersionUID = 478432134132211L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
     @JsonIgnore
     @EqualsAndHashCode.Include
@@ -108,7 +108,7 @@ public class Account extends RepresentationModel<Account> implements Serializabl
     private String phoneNumber;
 
     /**
-     * indicate wither this account has gone throw the activation and verification steps</br>
+     * indicate wither this account has gone throw the activation and verification steps<br/>
      * ex. email verification
      */
     @Column(name = "is_activated", nullable = false)
@@ -150,7 +150,7 @@ public class Account extends RepresentationModel<Account> implements Serializabl
 
     /**
      * This is used only in the backEnd (here (:) and will be used in most of places that depend on the current
-     * user</br>
+     * user<br/>
      * by default the {@code currentInUseUser} will be the {@code defaultUser} but it may change based on the user's
      * actions
      */

@@ -28,7 +28,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    format_sql: true
+    show_sql: true
   datasource:
     url: jdbc:postgresql://localhost:5433/4CoderPrototype
     username: 4Coder
@@ -36,16 +37,28 @@ spring:
   jackson:
     serialization:
       INDENT_OUTPUT: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: admin@the4coders.com
+    password: khzuuotwqgtemeuf
+    properties.mail.smtp:
+      auth: true
+      connectiontimeout: 5000
+      timeout: 5000
+      writetimeout: 5000
+      starttls.enable: true
+  thymeleaf:
+    cache: false
 logging:
   level:
     root: info
     web: debug
     sql: debug
+    org.hibernate.type: TRACE
     org.springframework.security.web.FilterChainProxy: trace
     com._4coders.liveconference.entities: trace
 #    com._4coders.liveconference.entities.account: trace
-
-
 ---
 
 server:

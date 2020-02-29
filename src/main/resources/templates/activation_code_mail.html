@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type"/>
+    <title>Activation code</title>
+</head>
+<body>
+<!--/*@thymesVar id="account" type="com._4coders.liveconference.entities.account.Account"*/-->
+<p th:text="|HI ${account.getFirstName()} ${account.getLastName()}|"></p>
+<!--/*@thymesVar id="accountCode" type="com._4coders.liveconference.entities.account.activation.AccountActivation"*/-->
+<p th:text="|Activation code: ${accountCode.code}|"></p>
+
+</body>
+</html>
