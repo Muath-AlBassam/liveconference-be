@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -49,7 +50,14 @@ public class Account extends RepresentationModel<Account> implements Serializabl
     private static final long serialVersionUID = 478432134132211L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(
+            strategy = GenerationType.AUTO,
+            generator = "native_account"
+    )
+    @GenericGenerator(
+            name = "native_account",
+            strategy = "native"
+    )
     @Column(name = "id")
     @JsonIgnore
     @EqualsAndHashCode.Include

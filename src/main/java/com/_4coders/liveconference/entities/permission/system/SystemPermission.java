@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
 import org.springframework.hateoas.RepresentationModel;
 
 import javax.persistence.*;
@@ -33,7 +34,14 @@ public class SystemPermission extends RepresentationModel<SystemPermission> impl
     private static final long serialVersionUID = -985623178561234L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(
+            strategy = GenerationType.AUTO,
+            generator = "native_system_permissions"
+    )
+    @GenericGenerator(
+            name = "native_system_permissions",
+            strategy = "native"
+    )
     @Column(name = "id")
     @JsonIgnore
     @EqualsAndHashCode.Include

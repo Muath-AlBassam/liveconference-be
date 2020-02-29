@@ -8,6 +8,7 @@ import com._4coders.liveconference.entities.user.UserViews;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -31,7 +32,14 @@ public class IpAddress extends RepresentationModel<IpAddress> implements Seriali
     private static final long serialVersionUID = 4800489213413210451L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(
+            strategy = GenerationType.AUTO,
+            generator = "native_ip_address"
+    )
+    @GenericGenerator(
+            name = "native_ip_address",
+            strategy = "native"
+    )
     @Column(name = "id")
     @JsonIgnore
     @EqualsAndHashCode.Include

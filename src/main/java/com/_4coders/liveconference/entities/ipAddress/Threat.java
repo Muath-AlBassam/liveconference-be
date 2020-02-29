@@ -3,6 +3,7 @@ package com._4coders.liveconference.entities.ipAddress;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -25,7 +26,14 @@ public class Threat implements Serializable {
     private static final long serialVersionUID = 2489213413210451L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(
+            strategy = GenerationType.AUTO,
+            generator = "native_ipAddress__threats"
+    )
+    @GenericGenerator(
+            name = "native_ipAddress__threats",
+            strategy = "native"
+    )
     @Column(name = "id")
     @JsonIgnore
     @EqualsAndHashCode.Include

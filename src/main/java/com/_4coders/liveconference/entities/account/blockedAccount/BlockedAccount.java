@@ -6,6 +6,7 @@ import com._4coders.liveconference.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -29,7 +30,14 @@ public class BlockedAccount extends RepresentationModel<BlockedAccount> implemen
     private static final long serialVersionUID = 75123187L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(
+            strategy = GenerationType.AUTO,
+            generator = "native_blocked_accounts"
+    )
+    @GenericGenerator(
+            name = "native_blocked_accounts",
+            strategy = "native"
+    )
     @Column(name = "id")
     @JsonIgnore
     @EqualsAndHashCode.Include

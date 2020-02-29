@@ -6,6 +6,7 @@ import com._4coders.liveconference.entities.account.systemBlocked.SystemBlockedA
 import com._4coders.liveconference.entities.user.UserViews;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -39,7 +40,14 @@ public class Address extends RepresentationModel<Address> implements Serializabl
     private static final long serialVersionUID = -9427451234L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(
+            strategy = GenerationType.AUTO,
+            generator = "native_addresses"
+    )
+    @GenericGenerator(
+            name = "native_addresses",
+            strategy = "native"
+    )
     @Column(name = "id")
     @EqualsAndHashCode.Include
     private Long id;

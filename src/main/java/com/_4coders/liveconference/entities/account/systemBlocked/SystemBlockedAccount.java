@@ -7,6 +7,7 @@ import com._4coders.liveconference.entities.user.UserViews;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -30,7 +31,14 @@ public class SystemBlockedAccount extends RepresentationModel<SystemBlockedAccou
     private static final long serialVersionUID = 1720475L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(
+            strategy = GenerationType.AUTO,
+            generator = "native_system_blockedAccounts"
+    )
+    @GenericGenerator(
+            name = "native_system_blockedAccounts",
+            strategy = "native"
+    )
     @Column(name = "id")
     @JsonIgnore
     @EqualsAndHashCode.Include
