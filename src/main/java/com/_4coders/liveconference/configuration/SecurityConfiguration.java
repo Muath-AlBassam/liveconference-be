@@ -32,6 +32,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.requiresChannel().anyRequest().requiresSecure();
         http.sessionManagement().maximumSessions(2);
+        http.cors();
         http.authorizeRequests().antMatchers("/flogger/accounts/register").permitAll()
                 .antMatchers("/flogger/accounts/activation_code").permitAll()
                 .antMatchers("/flogger/accounts/activation_code/update").permitAll()
