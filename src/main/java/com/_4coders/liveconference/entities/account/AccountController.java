@@ -254,7 +254,7 @@ public class AccountController {
     @PatchMapping(value = "/user/update", params = "uuid")
     public ResponseEntity<Boolean> updateCurrentInUseUserForCurrentlyLoggedInAccount(@AuthenticationPrincipal AccountDetails accountDetails, @RequestParam(value = "uuid") @UUIDConstraint UUID uuid) {
         log.atFinest().log("Request for updating CurrentInUseUser with UUID [%s] to the User with UUID [%s]",
-                accountDetails.getAccount().getCurrentInUseUser().getUuid(), uuid);
+                accountDetails.getAccount().getCurrentInUseUser() == null ? null : accountDetails.getAccount().getCurrentInUseUser().getUuid(), uuid);
         try {
             boolean result = accountService.updateCurrentInUseUser(accountDetails.getAccount(), uuid);
             return ResponseEntity.ok(result);
