@@ -2,6 +2,7 @@ package com._4coders.liveconference.entities.user;
 
 import com._4coders.liveconference.entities.account.Account;
 import com._4coders.liveconference.entities.account.AccountDetails;
+import com._4coders.liveconference.entities.global.UUIDConstraint;
 import com._4coders.liveconference.exception.account.AccountNotFoundException;
 import com._4coders.liveconference.exception.common.UUIDUniquenessException;
 import com._4coders.liveconference.exception.sort.MappingSortPropertiesToSchemaPropertiesException;
@@ -11,6 +12,8 @@ import com._4coders.liveconference.exception.user.UserNotFoundException;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.extern.flogger.Flogger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +34,7 @@ import java.util.UUID;
 public class UserController {
     @Autowired
     private UserService userService;
+
 
 
     /**
@@ -150,6 +154,75 @@ public class UserController {
         }
     }
 
+    @GetMapping(value = "/p_users", params = "userName")
+    public ResponseEntity<Page<User>> getUsersByUserName(@AuthenticationPrincipal AccountDetails accountDetails,
+                                                         @RequestParam("userName") String userName, Pageable pageable) {
+        if (accountDetails.getAccount().getCurrentInUseUser() == null) {
+            return ResponseEntity.badRequest().body(null);
+        } else {
+            log.atFinest().log("Request for retrieving a Page<User> with name [%s] for the User with name [%s]",
+                    userName, accountDetails.getAccount().getCurrentInUseUser().getUserName());
+            try {
+                Page<User> fetchedUsers = userService.getUsersByUserName(accountDetails.getAccount(), userName, pageable);
+                return ResponseEntity.ok(fetchedUsers);
+            } catch (MappingSortPropertiesToSchemaPropertiesException ex) {
+                return ResponseEntity.badRequest().body(null);
+            }
+        }
+    }
+
+
+    /**
+     * Returns a {@link User} by it's given {@code userName}
+     *
+     * @param userName the name of the {@link User}
+     * @return HTTP OK(200) if the {@link User} is found<br/>
+     * HTTP BAD_REQUEST(400) otherwise
+     */
+    @GetMapping(value = "/user", params = "userName")
+    @Transactional
+    public ResponseEntity<User> getUserByUserName(@AuthenticationPrincipal AccountDetails accountDetails, @RequestParam("userName") @NotBlank String userName) {
+        if (accountDetails.getAccount().getCurrentInUseUser() == null) {
+            return ResponseEntity.badRequest().body(null);
+        } else {
+            log.atFinest().log("Request for retrieving a User with name [%s] for the User with name [%s]", userName,
+                    accountDetails.getAccount().getCurrentInUseUser().getUserName());
+            try {
+                User fetchedUser = userService.getUserByUserName(accountDetails.getAccount(),
+                        userName);
+                return ResponseEntity.ok(fetchedUser);
+            } catch (UserNotFoundException ex) {
+                return ResponseEntity.badRequest().body(null);
+            }
+        }
+    }
+
+    //THINK may write or modify this one to make the user returned are based on the current logged in user ie you
+    // get the user based on your status with them for example User A is Friend with B but not C thus if b searched
+    // for A he gets that he is a friend with him.
+
+    /**
+     * Returns a {@link User} by it's given {@link UUID}
+     *
+     * @param uuid the {@link UUID} of the {@link User}
+     * @return HTTP OK(200) if the {@link User} is found<br/>
+     * HTTP BAD_REQUEST(400) otherwise
+     */
+    @GetMapping(value = "/user", params = "uuid")
+    public ResponseEntity<User> getUserByUUID(@AuthenticationPrincipal AccountDetails accountDetails, @RequestParam("uuid") @UUIDConstraint UUID uuid) {
+        if (accountDetails.getAccount().getCurrentInUseUser() == null) {
+            return ResponseEntity.badRequest().body(null);
+        } else {
+            log.atFinest().log("Request for retrieving a User with UUID [%s]", uuid);
+
+            try {
+                User fetchedUser = userService.getUserByUUID(accountDetails.getAccount().getCurrentInUseUser().getUserName(), uuid);
+                return ResponseEntity.ok(fetchedUser);
+            } catch (UserNotFoundException ex) {
+                return ResponseEntity.badRequest().body(null);
+            }
+        }
+    }
 
     /**
      * Deletes a {@code User} with the given {@code UserName} for the currently logged in {@code Account}
@@ -178,8 +251,8 @@ public class UserController {
             return ResponseEntity.badRequest().body(null);
         }
     }
-    //only for support user, Secure
 
+    //only for support user, Secure
     @DeleteMapping(value = "/support", params = "userName")
     @Transactional
     public ResponseEntity<Boolean> deleteUserByUserName(@AuthenticationPrincipal AccountDetails accountDetail, @RequestParam("userName") @NotBlank String userName) {
@@ -195,8 +268,8 @@ public class UserController {
             return ResponseEntity.badRequest().body(null);
         }
     }
-    //only for support user, Secure
 
+    //only for support user, Secure
     @DeleteMapping(value = "/support", params = "uuid")
     @Transactional
     public ResponseEntity<Boolean> deleteUserByUserUuid(@AuthenticationPrincipal AccountDetails accountDetail,
@@ -256,7 +329,8 @@ public class UserController {
         }
     }
 
-    //TODO update users userName for support and userStatus to
-    //TODO Add getUserByUserName and another by UUID
+
+    //TODO update users userName for support
+    //TODO Add get Page<User> by given userName
     //TODO getAllUsersByAccountId (includes the deleted ones)
 }

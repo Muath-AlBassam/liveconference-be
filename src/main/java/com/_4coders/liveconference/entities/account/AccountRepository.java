@@ -41,6 +41,14 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     boolean existsAccountByEmail(String email);
 
+    @Query(value = "select case\n" +
+            "           when (count(1) > 0) then true\n" +
+            "           else false end\n" +
+            "from accounts join blocked_accounts ba on accounts.id = ba.fk_account_blocker_id and accounts.id =:id_to_look_for\n" +
+            "where ba.fk_account_blocked_id =:target_id_to_look_for;", nativeQuery = true)
+    boolean existsBlockedAccountByBlockerId(@Param("id_to_look_for") Long blockerId,
+                                            @Param("target_id_to_look_for") Long targetIdToLookFor);
+
     /**
      * Checks wither an {@link Account} exists by the given {@code Email} and {@code PhoneNumber}
      *

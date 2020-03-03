@@ -2,7 +2,7 @@ package com._4coders.liveconference.entities.account;
 
 import com._4coders.liveconference.entities.account.activation.AccountActivation;
 import com._4coders.liveconference.entities.address.Address;
-import com._4coders.liveconference.entities.user.UUIDConstraint;
+import com._4coders.liveconference.entities.global.UUIDConstraint;
 import com._4coders.liveconference.entities.user.UserService;
 import com._4coders.liveconference.exception.account.AccountActivationCodeMatchException;
 import com._4coders.liveconference.exception.account.AccountAlreadyActivatedException;
@@ -10,6 +10,7 @@ import com._4coders.liveconference.exception.account.AccountFoundException;
 import com._4coders.liveconference.exception.account.AccountNotFoundException;
 import com._4coders.liveconference.exception.common.UUIDUniquenessException;
 import com._4coders.liveconference.exception.ipAddress.*;
+import com._4coders.liveconference.exception.user.UserNotFoundException;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.extern.flogger.Flogger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -250,6 +251,18 @@ public class AccountController {
         }
     }
 
+    @PatchMapping(value = "/user/update", params = "uuid")
+    public ResponseEntity<Boolean> updateCurrentInUseUserForCurrentlyLoggedInAccount(@AuthenticationPrincipal AccountDetails accountDetails, @RequestParam(value = "uuid") @UUIDConstraint UUID uuid) {
+        log.atFinest().log("Request for updating CurrentInUseUser with UUID [%s] to the User with UUID [%s]",
+                accountDetails.getAccount().getCurrentInUseUser().getUuid(), uuid);
+        try {
+            boolean result = accountService.updateCurrentInUseUser(accountDetails.getAccount(), uuid);
+            return ResponseEntity.ok(result);
+        } catch (UserNotFoundException ex) {
+            return ResponseEntity.badRequest().body(false);
+        }
+
+    }
 
 
 

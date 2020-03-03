@@ -4,6 +4,7 @@ import com._4coders.liveconference.entities.account.Account;
 import com._4coders.liveconference.entities.account.AccountViews;
 import com._4coders.liveconference.entities.account.blockedAccount.BlockedAccountViews;
 import com._4coders.liveconference.entities.setting.user.UserSetting;
+import com._4coders.liveconference.entities.user.friend.FriendView;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -34,6 +35,7 @@ import java.util.UUID;
 @Setter
 @ToString
 @RequiredArgsConstructor
+@AllArgsConstructor //TODO may cause error
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class User extends RepresentationModel<User> implements Serializable {
 
@@ -58,7 +60,8 @@ public class User extends RepresentationModel<User> implements Serializable {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonView({AccountViews.OwnerDetails.class, AccountViews.SupportMedium.class, AccountViews.OwnerInformation.class,
             UserViews.OwnerDetails.class, UserViews.Others.class,
-            BlockedAccountViews.OwnerDetails.class, BlockedAccountViews.SupportMedium.class})
+            BlockedAccountViews.OwnerDetails.class, BlockedAccountViews.SupportMedium.class,
+            FriendView.OwnerDetails.class, FriendView.Others.class})
     private UUID uuid;
     //the AccountViews.OwnerInformation.class, comes from BlockedAccount
 
@@ -66,7 +69,8 @@ public class User extends RepresentationModel<User> implements Serializable {
     @NotBlank
     @JsonView({AccountViews.OwnerDetails.class, AccountViews.SupportMedium.class, AccountViews.OwnerInformation.class,
             UserViews.OwnerDetails.class, UserViews.Others.class,
-            BlockedAccountViews.OwnerDetails.class, BlockedAccountViews.SupportMedium.class})
+            BlockedAccountViews.OwnerDetails.class, BlockedAccountViews.SupportMedium.class,
+            FriendView.OwnerDetails.class, FriendView.Others.class})
     private String userName;
 
     @Column(name = "last_login")
@@ -81,7 +85,8 @@ public class User extends RepresentationModel<User> implements Serializable {
     @Column(name = "status", nullable = false)
     @JsonView({AccountViews.OwnerDetails.class, AccountViews.SupportMedium.class,
             UserViews.OwnerDetails.class, UserViews.Others.class,
-            BlockedAccountViews.SupportMedium.class})
+            BlockedAccountViews.SupportMedium.class,
+            FriendView.OwnerDetails.class, FriendView.Others.class})
     private UserStatus status;
 
     /**
@@ -91,10 +96,19 @@ public class User extends RepresentationModel<User> implements Serializable {
     @Column(name = "is_deleted")
     @JsonView({AccountViews.SupportMedium.class,
             UserViews.OwnerInformation.class, UserViews.Others.class,
-            BlockedAccountViews.SupportMedium.class})
+            BlockedAccountViews.SupportMedium.class,
+            FriendView.OwnerDetails.class, FriendView.Others.class})
     //Others is given here for the case of user messaging a deleted user he should be able to know that he is deleted
     // or not (discuss with the team)
     private Boolean isDeleted;
+
+    @Transient
+    @JsonView({UserViews.Others.class})
+    private Boolean isFriend;//THINK may remove
+
+    @Transient
+    @JsonView({UserViews.Others.class})
+    private Boolean isBlocked;
 
     /**
      * Represent the owner of this user
