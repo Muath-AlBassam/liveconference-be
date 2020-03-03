@@ -3,6 +3,7 @@ package com._4coders.liveconference.entities.conference;
 import com._4coders.liveconference.entities.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.hateoas.RepresentationModel;
@@ -25,7 +26,14 @@ public class ConferenceUser extends RepresentationModel<ConferenceUser> implemen
     private static final long serialVersionUID = 1782443543139451L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(
+            strategy = GenerationType.AUTO,
+            generator = "native_conferences_users"
+    )
+    @GenericGenerator(
+            name = "native_conferences_users",
+            strategy = "native"
+    )
     @Column(name = "id")
     @JsonIgnore
     @EqualsAndHashCode.Include

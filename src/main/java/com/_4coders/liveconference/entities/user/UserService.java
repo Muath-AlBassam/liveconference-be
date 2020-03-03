@@ -3,6 +3,7 @@ package com._4coders.liveconference.entities.user;
 import com._4coders.liveconference.entities.account.Account;
 import com._4coders.liveconference.entities.account.AccountService;
 import com._4coders.liveconference.entities.setting.user.UserSetting;
+import com._4coders.liveconference.entities.user.friend.FriendRepository;
 import com._4coders.liveconference.exception.account.AccountNotFoundException;
 import com._4coders.liveconference.exception.common.UUIDUniquenessException;
 import com._4coders.liveconference.exception.sort.MappingSortPropertiesToSchemaPropertiesException;
@@ -12,6 +13,9 @@ import com._4coders.liveconference.exception.user.UserNotFoundException;
 import com._4coders.liveconference.util.sort.SortUtil;
 import lombok.extern.flogger.Flogger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +31,9 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private FriendRepository friendRepository;
 
     @Autowired
     private AccountService accountService;
@@ -105,6 +112,86 @@ public class UserService {
             return fetchedUser;
         }
     }
+
+    public Page<User> getUsersByUserName(Account requester, String toGetUserName, Pageable pageable) throws MappingSortPropertiesToSchemaPropertiesException {
+        log.atFinest().log("Fetching Page<User> with name starts with [%s] and account current userName [%s] and page" +
+                " [%s]", toGetUserName, requester.getCurrentInUseUser().getUserName(), pageable);
+        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                SortUtil.userSortMapping(pageable.getSort()));
+        Page<User> users =
+                userRepository.getUsersByUserNameStartsWith(requester.getId(), toGetUserName, pageable);
+        //im not sure that it will work but i hope it will
+        log.atFine().log("THE FETCHING RESULT: [%s]", users);
+        return users;
+    }
+
+    /**
+     * Returns the {@link User} with the given {@code userName}
+     *
+     * @param requesterAccount the requester {@link Account}
+     * @param toGetUserName    the name of the user
+     * @return the {@link User} if existing
+     * @throws UserNotFoundException if no {@link User} exists with the given {@code userName}
+     */
+    public User getUserByUserName(Account requesterAccount, String toGetUserName) throws UserNotFoundException {
+        User fetchedUser = userRepository.getUserByUserName(toGetUserName);
+        if (fetchedUser == null) {
+            log.atFinest().log("Throwing UserNotFoundException as there is no User with the given userName [%s]", toGetUserName);
+            throw new UserNotFoundException(String.format("No User exists with the given UserName [%s]", toGetUserName),
+                    toGetUserName);
+        } else {
+            fetchedUser.setIsFriend(friendRepository.existsFriendByAdder_UserNameAndAdded_UserNameAndIsFriendIsTrue(requesterAccount.getCurrentInUseUser().getUserName(),
+                    toGetUserName));
+            fetchedUser.setIsBlocked(accountService.existsBlockedAccountByBlockerId(requesterAccount.getId(),
+                    fetchedUser.getAccount().getId()));
+            return fetchedUser;
+        }
+    }//THINK check should blocked user be able to see the blocker ??
+
+    /**
+     * Returns the {@link User} with the given {@link UUID}
+     *
+     * @param requesterUserName the requester {@code userName}
+     * @param uuid              the {@link UUID} of the user
+     * @return the {@link User} if existing
+     * @throws UserNotFoundException if no {@link User} exists with the given {@link UUID}
+     */
+    public User getUserByUUID(String requesterUserName, UUID uuid) throws UserNotFoundException {
+        User fetchedUser = userRepository.getUserByUuid(uuid);
+        if (fetchedUser == null) {
+            log.atFinest().log("Throwing UserNotFoundException as there is no User with the given UUID [%s]", uuid);
+            throw new UserNotFoundException(String.format("No User exists with the given UUID [%s]", uuid),
+                    uuid);
+        } else {
+            fetchedUser.setIsFriend(friendRepository.existsFriendByAdder_UserNameAndAdded_UserNameAndIsFriendIsTrue(requesterUserName,
+                    fetchedUser.getUserName()));
+            return fetchedUser;
+        }
+    }//THINK check should blocked user be able to see the blocker ??
+
+
+    /**
+     * Returns the {@link User} with the given {@link UUID} where the {@link User} isn't deleted
+     *
+     * @param requesterAccount the requester {@link Account}
+     * @param uuid             the {@link UUID} of the user
+     * @return the {@link User} if existing
+     * @throws UserNotFoundException if no {@link User} exists with the given {@link UUID}
+     */
+    public User getUserByUUIDAndIsDeletedIsFalse(Account requesterAccount, UUID uuid) throws UserNotFoundException {
+        User fetchedUser = userRepository.getUserByUuidAndIsDeletedIsFalse(uuid);
+        if (fetchedUser == null) {
+            log.atFinest().log("Throwing UserNotFoundException as there is no User with the given UUID [%s]", uuid);
+            throw new UserNotFoundException(String.format("No User exists with the given UUID [%s]", uuid),
+                    uuid);
+        } else {
+            fetchedUser.setIsFriend(friendRepository.existsFriendByAdder_UserNameAndAdded_UserNameAndIsFriendIsTrue(requesterAccount.getCurrentInUseUser().getUserName(),
+                    fetchedUser.getUserName()));
+            fetchedUser.setIsBlocked(accountService.existsBlockedAccountByBlockerId(requesterAccount.getId(),
+                    fetchedUser.getAccount().getId()));
+            return fetchedUser;
+        }
+    }//THINK check should blocked user be able to see the blocker ??
     //todo check after chat and message has been implemented if any thing changes
 
     /**

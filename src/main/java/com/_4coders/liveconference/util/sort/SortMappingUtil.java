@@ -147,4 +147,85 @@ final class SortMappingUtil {
         }
         return toReturn;
     }
+
+    /**
+     * Maps the given {@code Sort} for {@code Friend} to it's {@code Schema} properties
+     *
+     * @param sort the {@code Friend} {@code Sort} to be mapped
+     * @return mapped {@code Schema} {@code Sort}
+     * @throws MappingSortPropertiesToSchemaPropertiesException when unknown {@code Friend} {@code Sort} properties
+     *                                                          is given
+     */
+    public static Sort friendMappingSortPropertiesToSchemaProperties(Sort sort) throws MappingSortPropertiesToSchemaPropertiesException {
+        log.atFinest().log("Starting the mapping of Friend Properties to Schema properties");
+        List<Sort.Order> orders = sort.get().map(order -> {
+            if (order.isAscending()) {
+                return Sort.Order.asc(friendSortPropertiesToSchemaProperties(order.getProperty()));
+            } else {
+                return Sort.Order.desc(friendSortPropertiesToSchemaProperties(order.getProperty()));
+            }
+        }).collect(Collectors.toList());
+        return Sort.by(orders);
+    }
+
+    private static String friendSortPropertiesToSchemaProperties(String sortProperty) throws MappingSortPropertiesToSchemaPropertiesException {
+        log.atFinest().log("Mapping Sort property to Friend Schema property");
+        String toReturn;
+        switch (sortProperty) {
+            case "id":
+                log.atFinest().log("Sort property [%s] mapped to schema property [%s]", sortProperty, "fk_user_added_id");
+                toReturn = "fk_user_added_id";
+                break;
+            case "date":
+                log.atFinest().log("Sort property [%s] mapped to schema property [%s]", sortProperty, "relation_start_date");
+                toReturn = "relation_start_date";
+                break;
+            default:
+                log.atFine().log("No mapping for the Sort property [%s] to Friend Schema property", sortProperty);
+                throw new MappingSortPropertiesToSchemaPropertiesException("Mapping failed from Sorted property " +
+                        "to Friend Schema property", sortProperty);
+        }
+        return toReturn;
+    }
+
+    /**
+     * Maps the given {@code Sort} for {@code FriendRequest} to it's {@code Schema} properties
+     *
+     * @param sort the {@code FriendRequest} {@code Sort} to be mapped
+     * @return mapped {@code Schema} {@code Sort}
+     * @throws MappingSortPropertiesToSchemaPropertiesException when unknown {@code FriendRequest} {@code Sort} properties
+     *                                                          is given
+     */
+    public static Sort friendRequestMappingSortPropertiesToSchemaProperties(Sort sort) throws MappingSortPropertiesToSchemaPropertiesException {
+        log.atFinest().log("Starting the mapping of FriendRequest Properties to Schema properties");
+        List<Sort.Order> orders = sort.get().map(order -> {
+            if (order.isAscending()) {
+                return Sort.Order.asc(friendRequestSortPropertiesToSchemaProperties(order.getProperty()));
+            } else {
+                return Sort.Order.desc(friendRequestSortPropertiesToSchemaProperties(order.getProperty()));
+            }
+        }).collect(Collectors.toList());
+        return Sort.by(orders);
+    }
+
+    private static String friendRequestSortPropertiesToSchemaProperties(String sortProperty) throws MappingSortPropertiesToSchemaPropertiesException {
+        log.atFinest().log("Mapping Sort property to FriendRequest Schema property");
+        String toReturn;
+        switch (sortProperty) {
+            case "id":
+                log.atFinest().log("Sort property [%s] mapped to schema property [%s]", sortProperty, "fk_user_added_id");
+                toReturn = "fk_user_added_id";
+                break;
+            case "date":
+                log.atFinest().log("Sort property [%s] mapped to schema property [%s]", sortProperty, "creation_date");
+                toReturn = "creation_date";
+                break;
+            default:
+                log.atFine().log("No mapping for the Sort property [%s] to FriendRequest Schema property", sortProperty);
+                throw new MappingSortPropertiesToSchemaPropertiesException("Mapping failed from Sorted property " +
+                        "to Friend Schema property", sortProperty);
+        }
+        return toReturn;
+    }
+
 }

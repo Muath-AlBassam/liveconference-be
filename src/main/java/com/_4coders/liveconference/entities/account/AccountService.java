@@ -8,10 +8,12 @@ import com._4coders.liveconference.entities.global.MailSendingService;
 import com._4coders.liveconference.entities.ipAddress.IpAddress;
 import com._4coders.liveconference.entities.ipAddress.IpAddressService;
 import com._4coders.liveconference.entities.role.system.SystemRoleService;
+import com._4coders.liveconference.entities.user.User;
 import com._4coders.liveconference.entities.user.UserService;
 import com._4coders.liveconference.exception.account.*;
 import com._4coders.liveconference.exception.common.UUIDUniquenessException;
 import com._4coders.liveconference.exception.ipAddress.*;
+import com._4coders.liveconference.exception.user.UserNotFoundException;
 import lombok.extern.flogger.Flogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -102,6 +104,17 @@ public class AccountService {
         }
     }
 
+    public boolean updateCurrentInUseUser(Account account, UUID uuid) throws UserNotFoundException {
+        Optional<User> toSet = account.getUsers().stream().filter(user -> user.getUuid().equals(uuid)).findFirst();
+        if (toSet.isEmpty()) {
+            log.atFinest().log("No User was found with UUID [%s] for the Account with UUID[%s]", uuid, account.getUuid());
+            throw new UserNotFoundException(String.format("No User was found with UUID [%s] for the Account with UUID[%s]", uuid, account.getUuid()), uuid);
+        } else {
+            account.setCurrentInUseUser(toSet.get());
+            return true;
+        }
+    }
+
     /**
      * Updates the {@code Password} for the given {@code Account} Id
      *
@@ -165,6 +178,11 @@ public class AccountService {
         final Account toReturn = accountRepository.getAccountByUuid(uuid);
         log.atFinest().log("Result of Account retrieval [%s]", toReturn);
         return toReturn;
+    }
+
+    public boolean existsBlockedAccountByBlockerId(Long blockerId, Long targetIdToLookFor) {
+        log.atFinest().log("Checking if there exist blocked Account [%d] by Blocker ID [%d]", blockerId, targetIdToLookFor);
+        return accountRepository.existsBlockedAccountByBlockerId(blockerId, targetIdToLookFor);
     }
 
     /**
