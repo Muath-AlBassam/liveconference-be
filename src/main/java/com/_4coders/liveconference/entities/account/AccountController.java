@@ -33,6 +33,8 @@ import java.util.UUID;
 @Flogger
 @RequestMapping(value = "/flogger/accounts", produces = {"application/json", "application/hal+json"})
 @Validated
+@CrossOrigin(origins = "*", exposedHeaders = "X-Auth-Token", allowedHeaders = "*", methods =
+        {RequestMethod.DELETE, RequestMethod.GET, RequestMethod.POST})
 public class AccountController {
 
     @Autowired
