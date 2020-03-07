@@ -52,6 +52,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration = corsConfiguration.applyPermitDefaultValues();
         corsConfiguration.setExposedHeaders(Collections.singletonList("X-Auth-Token"));
+        corsConfiguration.setAllowedMethods(Collections.singletonList("*"));
         source.registerCorsConfiguration("/**", corsConfiguration);
         return source;
     }

@@ -23,6 +23,8 @@ import java.util.UUID;
 @Flogger
 @Validated
 @RequestMapping("/flogger/users/friends")
+@CrossOrigin(origins = "*", exposedHeaders = "X-Auth-Token", allowedHeaders = "*", methods =
+        {RequestMethod.DELETE, RequestMethod.GET, RequestMethod.POST})
 public class FriendController {
 
     @Autowired
