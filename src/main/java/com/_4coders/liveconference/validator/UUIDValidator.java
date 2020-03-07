@@ -1,4 +1,4 @@
-package com._4coders.liveconference.entities.global;
+package com._4coders.liveconference.validator;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;

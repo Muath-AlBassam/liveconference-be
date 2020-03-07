@@ -58,6 +58,8 @@ logging:
     org.hibernate.type: TRACE
     org.springframework.security.web.FilterChainProxy: trace
     com._4coders.liveconference.entities: trace
+    com._4coders.liveconference.util: trace
+    com._4coders.liveconference.exception: trace
 #    com._4coders.liveconference.entities.account: trace
 ---
 

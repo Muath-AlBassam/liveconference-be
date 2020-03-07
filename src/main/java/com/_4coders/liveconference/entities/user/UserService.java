@@ -2,6 +2,7 @@ package com._4coders.liveconference.entities.user;
 
 import com._4coders.liveconference.entities.account.Account;
 import com._4coders.liveconference.entities.account.AccountService;
+import com._4coders.liveconference.entities.global.Page;
 import com._4coders.liveconference.entities.setting.user.UserSetting;
 import com._4coders.liveconference.entities.user.friend.FriendRepository;
 import com._4coders.liveconference.exception.account.AccountNotFoundException;
@@ -13,7 +14,6 @@ import com._4coders.liveconference.exception.user.UserNotFoundException;
 import com._4coders.liveconference.util.sort.SortUtil;
 import lombok.extern.flogger.Flogger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -75,6 +75,7 @@ public class UserService {
                     User toRegister = new User();
                     toRegister.setUuid(uuid);
                     toRegister.setUserName(userName);
+                    toRegister.setLastStatus(UserStatus.ONLINE);
                     toRegister.setStatus(UserStatus.OFFLINE);
                     toRegister.setIsDeleted(false);
                     toRegister.setAccount(account);
@@ -113,16 +114,17 @@ public class UserService {
         }
     }
 
-    public Page<User> getUsersByUserName(Account requester, String toGetUserName, Pageable pageable) throws MappingSortPropertiesToSchemaPropertiesException {
+    public Page<User> getUsersByUserName(Account requester,
+                                         String toGetUserName, Pageable pageable) throws MappingSortPropertiesToSchemaPropertiesException {
         log.atFinest().log("Fetching Page<User> with name starts with [%s] and account current userName [%s] and page" +
                 " [%s]", toGetUserName, requester.getCurrentInUseUser().getUserName(), pageable);
         pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
                 SortUtil.userSortMapping(pageable.getSort()));
-        Page<User> users =
-                userRepository.getUsersByUserNameStartsWith(requester.getId(), toGetUserName, pageable);
-        //im not sure that it will work but i hope it will
-        log.atFine().log("THE FETCHING RESULT: [%s]", users);
-        return users;
+        String orderBy =
+                pageable.getSort().stream().map(order -> order.getProperty() + " " + order.getDirection()).reduce((s,
+                                                                                                                   s2) -> s + ", " + s2).get();
+        return new Page<>(userRepository.getUsersByUserNameStartsWith(requester.getId(), toGetUserName, orderBy,
+                pageable), pageable);
     }
 
     /**

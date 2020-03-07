@@ -10,6 +10,7 @@ import com._4coders.liveconference.entities.ipAddress.IpAddressService;
 import com._4coders.liveconference.entities.role.system.SystemRoleService;
 import com._4coders.liveconference.entities.user.User;
 import com._4coders.liveconference.entities.user.UserService;
+import com._4coders.liveconference.entities.user.UserStatus;
 import com._4coders.liveconference.exception.account.*;
 import com._4coders.liveconference.exception.common.UUIDUniquenessException;
 import com._4coders.liveconference.exception.ipAddress.*;
@@ -110,7 +111,16 @@ public class AccountService {
             log.atFinest().log("No User was found with UUID [%s] for the Account with UUID[%s]", uuid, account.getUuid());
             throw new UserNotFoundException(String.format("No User was found with UUID [%s] for the Account with UUID[%s]", uuid, account.getUuid()), uuid);
         } else {
+            if (account.getCurrentInUseUser() != null) {
+                account.getCurrentInUseUser().setLastStatus(account.getCurrentInUseUser().getStatus());
+                account.getCurrentInUseUser().setStatus(UserStatus.OFFLINE);
+                userService.updateUserStatusByUserUuid(account.getId(), account.getCurrentInUseUser().getUuid(), account.getCurrentInUseUser().getStatus().toString());
+            }
+            accountRepository.updateCurrentInUseUser(account.getId(), toSet.get().getId());
             account.setCurrentInUseUser(toSet.get());
+            account.getCurrentInUseUser().setStatus(account.getCurrentInUseUser().getLastStatus());
+            userService.updateUserStatusByUserUuid(account.getId(), account.getCurrentInUseUser().getUuid(),
+                    account.getCurrentInUseUser().getLastStatus().toString());
             return true;
         }
     }

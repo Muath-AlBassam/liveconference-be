@@ -37,11 +37,58 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @AllArgsConstructor //TODO may cause error
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
+@SqlResultSetMapping(//for the below native query
+        name = "getUsersByUserNameStartsWithMapping",
+        classes = {
+                @ConstructorResult(
+                        targetClass = User.class,
+                        columns = {
+                                @ColumnResult(name = "id", type = Long.class),
+                                @ColumnResult(name = "uuid", type = UUID.class),
+                                @ColumnResult(name = "username", type = String.class),
+                                @ColumnResult(name = "last_login", type = Date.class),
+                                @ColumnResult(name = "status", type = Integer.class),
+                                @ColumnResult(name = "is_deleted", type = Boolean.class),
+                                @ColumnResult(name = "isBlocked", type = Boolean.class),
+                                @ColumnResult(name = "creation_date", type = Date.class),
+                        }
+                )
+        }
+)
+@NamedNativeQuery(name = "User.getUsersByUserNameStartsWith", query = "select id,\n" +
+        "       " +
+        "creation_date,\n" +
+        "       " +
+        "is_deleted,\n" +
+        "      " +
+        " last_login,\n" +
+        "      " +
+        " status,\n" +
+        "      " +
+        " username,\n" +
+        "      " +
+        " uuid,\n" +
+        "      " +
+        " (select ca" +
+        "se " +
+        "when " +
+        "(count(1) > 0) " +
+        "then true " +
+        "else false end\n" +
+        "       " +
+        " from accounts,\n" +
+        "             blocked_accounts ba\n" +
+        "        where accounts.id = ba.fk_account_blocker_id\n" +
+        "          and accounts.id = :requester_id\n" +
+        "         " +
+        " and ba.fk_account_blocked_id = users.id) as isBlocked\n" +
+        "from users\n" +
+        "where username like concat(:username_to_look_for, '%') order by :to_order_by", resultSetMapping =
+        "getUsersByUserNameStartsWithMapping")
 public class User extends RepresentationModel<User> implements Serializable {
 
     @Transient
     private static final long serialVersionUID = 1224321388765124L;
-
     @Id
     @GeneratedValue(
             strategy = GenerationType.AUTO,
@@ -55,7 +102,6 @@ public class User extends RepresentationModel<User> implements Serializable {
     @JsonIgnore
     @EqualsAndHashCode.Include
     private Long id;
-
     @Column(name = "uuid", nullable = false, unique = true, updatable = false)
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonView({AccountViews.OwnerDetails.class, AccountViews.SupportMedium.class, AccountViews.OwnerInformation.class,
@@ -63,8 +109,6 @@ public class User extends RepresentationModel<User> implements Serializable {
             BlockedAccountViews.OwnerDetails.class, BlockedAccountViews.SupportMedium.class,
             FriendView.OwnerDetails.class, FriendView.Others.class})
     private UUID uuid;
-    //the AccountViews.OwnerInformation.class, comes from BlockedAccount
-
     @Column(name = "username", nullable = false, unique = true, columnDefinition = "TEXT")
     @NotBlank
     @JsonView({AccountViews.OwnerDetails.class, AccountViews.SupportMedium.class, AccountViews.OwnerInformation.class,
@@ -72,13 +116,12 @@ public class User extends RepresentationModel<User> implements Serializable {
             BlockedAccountViews.OwnerDetails.class, BlockedAccountViews.SupportMedium.class,
             FriendView.OwnerDetails.class, FriendView.Others.class})
     private String userName;
-
+    //the AccountViews.OwnerInformation.class, comes from BlockedAccount
     @Column(name = "last_login")
     @JsonView({AccountViews.OwnerInformation.class, AccountViews.SupportMedium.class,
             UserViews.OwnerInformation.class, UserViews.SupportLittle.class,
             BlockedAccountViews.SupportMedium.class})
     private Date lastLogin;
-
     /**
      * Represent the current status of the user
      */
@@ -89,6 +132,12 @@ public class User extends RepresentationModel<User> implements Serializable {
             FriendView.OwnerDetails.class, FriendView.Others.class})
     private UserStatus status;
 
+    @Column(name = "last_status", nullable = false)
+    @JsonIgnore
+    private UserStatus lastStatus;
+
+
+    //ADD LAST STATUS
     /**
      * <p>Represent wither this user has been deleted or not</p>
      * <p>usually this will be false or null</p>
@@ -101,15 +150,12 @@ public class User extends RepresentationModel<User> implements Serializable {
     //Others is given here for the case of user messaging a deleted user he should be able to know that he is deleted
     // or not (discuss with the team)
     private Boolean isDeleted;
-
     @Transient
     @JsonView({UserViews.Others.class})
     private Boolean isFriend;//THINK may remove
-
     @Transient
     @JsonView({UserViews.Others.class})
     private Boolean isBlocked;
-
     /**
      * Represent the owner of this user
      */
@@ -119,14 +165,10 @@ public class User extends RepresentationModel<User> implements Serializable {
     //view Owner... won't be set here because when the User has logged in with his account the Account data should be
     // saved by the consumer of the API and returning the Account with each user object is bad for the size of message
     private Account account;
-
     @OneToOne(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, optional = false)
     @JsonView({UserViews.OwnerDetails.class})
 //        @JsonView({AccountViews.OwnerDetails.class,AccountViews.SupportMedium.class}) only if setting contains the logo
     private UserSetting userSetting;
-
-    //todo add friends, groups, cards and categories
-
     @Column(name = "creation_date", nullable = false, updatable = false)
     @CreatedDate
     @JsonView({AccountViews.OwnerInformation.class, AccountViews.SupportMedium.class,
@@ -134,6 +176,7 @@ public class User extends RepresentationModel<User> implements Serializable {
             BlockedAccountViews.SupportMedium.class})
     private Date creationDate;
 
+    //todo add friends, groups, cards and categories
     @Column(name = "last_modified_date", nullable = false)
     @LastModifiedDate
     @JsonView({AccountViews.SupportAll.class,
@@ -141,7 +184,21 @@ public class User extends RepresentationModel<User> implements Serializable {
             BlockedAccountViews.SupportAll.class})
     private Date lastModifiedDate;
 
-//    @PrePersist
+    //for the above native query
+    public User(Long id, UUID uuid, String username, Date lastLogin, Integer status, Boolean isDeleted,
+                Boolean isBlocked, Date creationDate) {
+        this.id = id;
+        this.uuid = uuid;
+        this.userName = username;
+        this.lastLogin = lastLogin;
+        this.status = UserStatus.values()[status];
+        this.isDeleted = isDeleted;
+        this.isBlocked = isBlocked;
+        this.creationDate = creationDate;
+    }
+
+
+    //    @PrePersist
 //    private void setUUID() {
 //        uuid = UUID.randomUUID();
 //    }

@@ -25,7 +25,7 @@ public class RestJsonViewControllerAdvice extends AbstractMappingJacksonResponse
     protected void beforeBodyWriteInternal(MappingJacksonValue mappingJacksonValue, MediaType mediaType, MethodParameter methodParameter,
                                            ServerHttpRequest serverHttpRequest, ServerHttpResponse serverHttpResponse) {
         //TODO CHECK for incoming request target and set the correct view as each entity has it's own views
-        log.atFinest().log("Setting the Json view class before request");
+        log.atFinest().log("Setting the Json view class before returning data");
         Class<?> viewClass;
         if (serverHttpRequest.getURI().getPath().split("/").length < 3) {
             viewClass = AccountViews.Others.class;
