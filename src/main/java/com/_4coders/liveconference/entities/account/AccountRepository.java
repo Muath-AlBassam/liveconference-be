@@ -44,8 +44,8 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     @Query(value = "select case\n" +
             "           when (count(1) > 0) then true\n" +
             "           else false end\n" +
-            "from accounts join blocked_accounts ba on accounts.id = ba.fk_account_blocker_id and accounts.id =:id_to_look_for\n" +
-            "where ba.fk_account_blocked_id =:target_id_to_look_for;", nativeQuery = true)
+            "from accounts join blocked_accounts ba on accounts.id = ba.fk_account_blocker_id and accounts.id =:id_to_look_for" +
+            " and ba.fk_account_blocked_id =:target_id_to_look_for ;", nativeQuery = true)
     boolean existsBlockedAccountByBlockerId(@Param("id_to_look_for") Long blockerId,
                                             @Param("target_id_to_look_for") Long targetIdToLookFor);
 
@@ -109,4 +109,8 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     @Modifying
     @Query(value = "update accounts set email = :new_email where uuid = :uuid_toFind", nativeQuery = true)
     void updateEmailByUuid(@Param("uuid_toFind") UUID uuid, @Param("new_email") String email);
+
+    @Modifying
+    @Query(value = "update accounts set fk_current_in_use_user_id = :given_user_id where id = :given_account_id", nativeQuery = true)
+    void updateCurrentInUseUser(@Param("given_account_id") Long accountId, @Param("given_user_id") Long userId);
 }

@@ -1,10 +1,10 @@
 package com._4coders.liveconference.entities.user.friend;
 
 import com._4coders.liveconference.entities.account.AccountDetails;
-import com._4coders.liveconference.entities.global.UUIDConstraint;
 import com._4coders.liveconference.exception.account.AccountsBlockedException;
 import com._4coders.liveconference.exception.sort.MappingSortPropertiesToSchemaPropertiesException;
 import com._4coders.liveconference.exception.user.*;
+import com._4coders.liveconference.validator.UUIDConstraint;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.extern.flogger.Flogger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +43,7 @@ public class FriendController {
             try {
                 boolean result = friendRequestService.friendRequest(accountDetails.getAccount(), toAddUuid);
                 return ResponseEntity.ok(result);
-            } catch (UserNotFoundException | FriendAlreadyEstablishedException | AccountsBlockedException | FriendRequestAlreadyExist ex) {
+            } catch (UserNotFoundException | BefriendSelfException | FriendAlreadyEstablishedException | AccountsBlockedException | FriendRequestAlreadyExist ex) {
                 return ResponseEntity.badRequest().body(false);
             }
         }

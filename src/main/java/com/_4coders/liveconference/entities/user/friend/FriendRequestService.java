@@ -42,14 +42,20 @@ public class FriendRequestService {
      * @param toAdd     the {@link UUID} of the target
      * @return {@code true} if the {@link FriendRequest} was created
      * @throws UserNotFoundException             when no {@link User} exists with the given {@link UUID}
+     * @throws BefriendSelfException             when the {@link User} tries to befriend himself
      * @throws FriendAlreadyEstablishedException when there exists a friendship relation between the given users
      * @throws AccountsBlockedException          when the {@code target} of this relation has blocked the initiator
      * @throws FriendRequestAlreadyExist         when a {@link FriendRequest} already exists
      */
-    public boolean friendRequest(Account requester, UUID toAdd) throws UserNotFoundException,
+    public boolean friendRequest(Account requester, UUID toAdd) throws UserNotFoundException, BefriendSelfException,
             FriendAlreadyEstablishedException, AccountsBlockedException, FriendRequestAlreadyExist {
         User fetchedUser = userService.getUserByUUIDAndIsDeletedIsFalse(requester, toAdd);
-        if (fetchedUser.getIsFriend()) {
+        if (requester.getUsers().stream().anyMatch(user -> user.getUuid().equals(toAdd))) {
+            log.atFinest().log("Throwing BefriendSelfException as the User [%s] it trying to befriend himself [%s]",
+                    requester.getCurrentInUseUser().getUuid(), toAdd);
+            throw new BefriendSelfException(String.format("User [%s] it trying to befriend himself [%s]",
+                    requester.getCurrentInUseUser().getUuid(), toAdd), toAdd);
+        } else if (fetchedUser.getIsFriend()) {
             log.atFinest().log("Throwing FriendAlreadyEstablishedException as [%s] and [%s] are already friends",
                     requester.getCurrentInUseUser().getUserName(), fetchedUser.getUserName());
             throw new FriendAlreadyEstablishedException(String.format("[%s] and [%s] are already friends",

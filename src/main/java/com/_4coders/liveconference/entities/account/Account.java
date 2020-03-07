@@ -162,7 +162,8 @@ public class Account extends RepresentationModel<Account> implements Serializabl
      * by default the {@code currentInUseUser} will be the {@code defaultUser} but it may change based on the user's
      * actions
      */
-    @Transient
+    @OneToOne
+    @JoinColumn(name = "fk_current_in_use_user_id", referencedColumnName = "id")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @ToString.Exclude
     private User currentInUseUser;
