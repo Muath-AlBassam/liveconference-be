@@ -33,7 +33,7 @@ public class FriendService {
 
     public void addFriend(User target, UUID requesterUserUuid) throws FriendAlreadyEstablishedException,
             AccountsBlockedException {
-        User requester = userService.getUserByUUID(target.getUserName(), requesterUserUuid);
+        User requester = userService.getUserByUUID(target.getAccount(), requesterUserUuid);
         if (requester.getIsFriend()) {
             log.atFinest().log("Throwing FriendAlreadyEstablishedException as the User with userName [%s] already is a friend " +
                     "with [%s]", target.getUserName(), requester.getUserName());

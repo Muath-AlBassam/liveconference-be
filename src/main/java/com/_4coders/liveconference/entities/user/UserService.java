@@ -155,23 +155,29 @@ public class UserService {
     /**
      * Returns the {@link User} with the given {@link UUID}
      *
-     * @param requesterUserName the requester {@code userName}
-     * @param uuid              the {@link UUID} of the user
+     * @param requesterAccount the requester {@link Account}
+     * @param uuid             the {@link UUID} of the user
      * @return the {@link User} if existing
      * @throws UserNotFoundException if no {@link User} exists with the given {@link UUID}
      */
-    public User getUserByUUID(String requesterUserName, UUID uuid) throws UserNotFoundException {
+    public User getUserByUUID(Account requesterAccount, UUID uuid) throws UserNotFoundException {
         User fetchedUser = userRepository.getUserByUuid(uuid);
+        return setFetchedUserIsFriendAndIsBlocked(requesterAccount, uuid, fetchedUser);
+    }//THINK check should blocked user be able to see the blocker ??
+
+    private User setFetchedUserIsFriendAndIsBlocked(Account requesterAccount, UUID uuid, User fetchedUser) {
         if (fetchedUser == null) {
             log.atFinest().log("Throwing UserNotFoundException as there is no User with the given UUID [%s]", uuid);
             throw new UserNotFoundException(String.format("No User exists with the given UUID [%s]", uuid),
                     uuid);
         } else {
-            fetchedUser.setIsFriend(friendRepository.existsFriendByAdder_UserNameAndAdded_UserNameAndIsFriendIsTrue(requesterUserName,
+            fetchedUser.setIsFriend(friendRepository.existsFriendByAdder_UserNameAndAdded_UserNameAndIsFriendIsTrue(requesterAccount.getCurrentInUseUser().getUserName(),
                     fetchedUser.getUserName()));
+            fetchedUser.setIsBlocked(accountService.existsBlockedAccountByBlockerId(requesterAccount.getId(),
+                    fetchedUser.getAccount().getId()));
             return fetchedUser;
         }
-    }//THINK check should blocked user be able to see the blocker ??
+    }
 
 
     /**
@@ -184,17 +190,7 @@ public class UserService {
      */
     public User getUserByUUIDAndIsDeletedIsFalse(Account requesterAccount, UUID uuid) throws UserNotFoundException {
         User fetchedUser = userRepository.getUserByUuidAndIsDeletedIsFalse(uuid);
-        if (fetchedUser == null) {
-            log.atFinest().log("Throwing UserNotFoundException as there is no User with the given UUID [%s]", uuid);
-            throw new UserNotFoundException(String.format("No User exists with the given UUID [%s]", uuid),
-                    uuid);
-        } else {
-            fetchedUser.setIsFriend(friendRepository.existsFriendByAdder_UserNameAndAdded_UserNameAndIsFriendIsTrue(requesterAccount.getCurrentInUseUser().getUserName(),
-                    fetchedUser.getUserName()));
-            fetchedUser.setIsBlocked(accountService.existsBlockedAccountByBlockerId(requesterAccount.getId(),
-                    fetchedUser.getAccount().getId()));
-            return fetchedUser;
-        }
+        return setFetchedUserIsFriendAndIsBlocked(requesterAccount, uuid, fetchedUser);
     }//THINK check should blocked user be able to see the blocker ??
     //todo check after chat and message has been implemented if any thing changes
 

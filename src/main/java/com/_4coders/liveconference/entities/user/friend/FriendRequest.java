@@ -39,12 +39,12 @@ public class FriendRequest extends RepresentationModel<FriendRequest> implements
     @ManyToOne
     @MapsId("userAdderID")
     @JoinColumn(name = "fk_user_adder_id", referencedColumnName = "id", nullable = false, updatable = false)
+    @JsonView({FriendView.OwnerDetails.class, FriendView.Others.class})
     private User adder;
 
     @ManyToOne
     @MapsId("userAddedID")
     @JoinColumn(name = "fk_user_added_id", referencedColumnName = "id", nullable = false, updatable = false)
-    @JsonView({FriendView.OwnerDetails.class, FriendView.Others.class})
     private User added;
 
     @Column(name = "creation_date", nullable = false, updatable = false)

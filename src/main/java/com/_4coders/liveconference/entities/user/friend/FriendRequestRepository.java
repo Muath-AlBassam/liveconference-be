@@ -12,5 +12,5 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, Fr
 
     FriendRequest getFriendRequestByAdder_UuidAndAdded_Uuid(UUID adder, UUID added);
 
-    Page<FriendRequest> getFriendRequestsByAdder_Id(Long id, Pageable pageable);
+    Page<FriendRequest> getFriendRequestsByAdded_Id(Long id, Pageable pageable);
 }
