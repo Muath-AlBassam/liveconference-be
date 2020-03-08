@@ -58,7 +58,7 @@ public class FriendService {
         log.atFinest().log("Retrieving Page<Friend> for UserName [%s] and UUID [%s]", requester.getUserName(),
                 requester.getUuid());
         pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                SortUtil.userFriendMapping(pageable.getSort()));
+                SortUtil.userFriendMapping(pageable.getSort(), false));
         return friendRepository.getFriendsByAdder_IdAndIsFriendIsTrue(requester.getId(), pageable);
     }
 

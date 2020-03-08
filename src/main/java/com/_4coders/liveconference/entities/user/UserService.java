@@ -119,11 +119,11 @@ public class UserService {
         log.atFinest().log("Fetching Page<User> with name starts with [%s] and account current userName [%s] and page" +
                 " [%s]", toGetUserName, requester.getCurrentInUseUser().getUserName(), pageable);
         pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                SortUtil.userSortMapping(pageable.getSort()));
+                SortUtil.userSortMapping(pageable.getSort(), true));
         String orderBy =
                 pageable.getSort().stream().map(order -> order.getProperty() + " " + order.getDirection()).reduce((s,
                                                                                                                    s2) -> s + ", " + s2).get();
-        return new Page<>(userRepository.getUsersByUserNameStartsWith(requester.getId(), toGetUserName, orderBy,
+        return new Page<>(userRepository.getUsersByUserNameStartsWith(requester.getId(), toGetUserName,
                 pageable), pageable);
     }
 
@@ -381,7 +381,7 @@ public class UserService {
             throw new AccountNotFoundException(String.format("No Account was found with the given Email [%s]", email), email);
         } else {
             log.atFinest().log("Checking that Sort is sorted or not and if not getting the default sort");
-            sort = SortUtil.userSortMapping(sort);
+            sort = SortUtil.userSortMapping(sort, false);
             log.atFinest().log("Fetching Users...");
             Set<User> toReturn = userRepository.getUsersByAccount_EmailAndIsDeletedIsFalse(email, sort);
             log.atFinest().log("Result of Users fetching is [%s]", toReturn);
@@ -404,7 +404,7 @@ public class UserService {
                     uuid);
         } else {
             log.atFinest().log("Checking that Sort is sorted or not and if not getting the default sort");
-            sort = SortUtil.userSortMapping(sort);
+            sort = SortUtil.userSortMapping(sort, false);
             log.atFinest().log("Fetching Users...");
             Set<User> toReturn = userRepository.getUsersByAccount_UuidAndIsDeletedIsFalse(uuid, sort);
             log.atFinest().log("Result of Users fetching is [%s]", toReturn);
@@ -426,7 +426,7 @@ public class UserService {
                     accountId);
         } else {
             log.atFinest().log("Checking that Sort is sorted or not and if not getting the default sort");
-            sort = SortUtil.userSortMapping(sort);
+            sort = SortUtil.userSortMapping(sort, false);
             log.atFinest().log("Fetching Users...");
             Set<User> toReturn = userRepository.getUsersByAccount_IdAndIsDeletedIsFalse(accountId, sort);
             log.atFinest().log("Result of Users fetching is [%s]", toReturn);

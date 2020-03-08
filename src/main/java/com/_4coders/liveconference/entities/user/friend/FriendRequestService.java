@@ -125,7 +125,7 @@ public class FriendRequestService {
         log.atFinest().log("Retrieving Page<FriendRequest> for UserName [%s] and UUID [%s]", requester.getUserName(),
                 requester.getUuid());
         pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                SortUtil.userFriendRequestMapping(pageable.getSort()));
+                SortUtil.userFriendRequestMapping(pageable.getSort(), false));
         return friendRequestRepository.getFriendRequestsByAdder_Id(requester.getId(), pageable);
 
     }
