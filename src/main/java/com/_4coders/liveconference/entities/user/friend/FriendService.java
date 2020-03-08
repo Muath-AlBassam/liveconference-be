@@ -1,6 +1,7 @@
 package com._4coders.liveconference.entities.user.friend;
 
 import com._4coders.liveconference.entities.global.Checkers;
+import com._4coders.liveconference.entities.global.Page;
 import com._4coders.liveconference.entities.user.User;
 import com._4coders.liveconference.entities.user.UserService;
 import com._4coders.liveconference.exception.account.AccountsBlockedException;
@@ -9,7 +10,6 @@ import com._4coders.liveconference.exception.user.FriendAlreadyEstablishedExcept
 import com._4coders.liveconference.util.sort.SortUtil;
 import lombok.extern.flogger.Flogger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -59,7 +59,7 @@ public class FriendService {
                 requester.getUuid());
         pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
                 SortUtil.userFriendMapping(pageable.getSort(), false));
-        return friendRepository.getFriendsByAdder_IdAndIsFriendIsTrue(requester.getId(), pageable);
+        return new Page<>(friendRepository.getFriendsByAdder_IdAndIsFriendIsTrue(requester.getId(), pageable), pageable);
     }
 
     private Friend createFriend(User requester, User target) {
