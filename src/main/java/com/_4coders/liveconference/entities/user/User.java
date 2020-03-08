@@ -37,54 +37,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @AllArgsConstructor //TODO may cause error
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-@SqlResultSetMapping(//for the below native query
-        name = "getUsersByUserNameStartsWithMapping",
-        classes = {
-                @ConstructorResult(
-                        targetClass = User.class,
-                        columns = {
-                                @ColumnResult(name = "id", type = Long.class),
-                                @ColumnResult(name = "uuid", type = UUID.class),
-                                @ColumnResult(name = "username", type = String.class),
-                                @ColumnResult(name = "last_login", type = Date.class),
-                                @ColumnResult(name = "status", type = Integer.class),
-                                @ColumnResult(name = "is_deleted", type = Boolean.class),
-                                @ColumnResult(name = "isBlocked", type = Boolean.class),
-                                @ColumnResult(name = "creation_date", type = Date.class),
-                        }
-                )
-        }
-)
-@NamedNativeQuery(name = "User.getUsersByUserNameStartsWith", query = "select id,\n" +
-        "       " +
-        "creation_date,\n" +
-        "       " +
-        "is_deleted,\n" +
-        "      " +
-        " last_login,\n" +
-        "      " +
-        " status,\n" +
-        "      " +
-        " username,\n" +
-        "      " +
-        " uuid,\n" +
-        "      " +
-        " (select ca" +
-        "se " +
-        "when " +
-        "(count(1) > 0) " +
-        "then true " +
-        "else false end\n" +
-        "       " +
-        " from accounts,\n" +
-        "             blocked_accounts ba\n" +
-        "        where accounts.id = ba.fk_account_blocker_id\n" +
-        "          and accounts.id = :requester_id\n" +
-        "         " +
-        " and ba.fk_account_blocked_id = users.id) as isBlocked\n" +
-        "from users\n" +
-        "where username like concat(:username_to_look_for, '%') order by :to_order_by", resultSetMapping =
-        "getUsersByUserNameStartsWithMapping")
 public class User extends RepresentationModel<User> implements Serializable {
 
     @Transient
@@ -183,19 +135,6 @@ public class User extends RepresentationModel<User> implements Serializable {
             UserViews.OwnerInformation.class, UserViews.SupportAll.class,
             BlockedAccountViews.SupportAll.class})
     private Date lastModifiedDate;
-
-    //for the above native query
-    public User(Long id, UUID uuid, String username, Date lastLogin, Integer status, Boolean isDeleted,
-                Boolean isBlocked, Date creationDate) {
-        this.id = id;
-        this.uuid = uuid;
-        this.userName = username;
-        this.lastLogin = lastLogin;
-        this.status = UserStatus.values()[status];
-        this.isDeleted = isDeleted;
-        this.isBlocked = isBlocked;
-        this.creationDate = creationDate;
-    }
 
 
     //    @PrePersist

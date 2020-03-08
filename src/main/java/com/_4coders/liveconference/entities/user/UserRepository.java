@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -16,10 +17,32 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 
     Page<User> getUsersByUserNameStartsWith(String userName, Pageable pageable);
 
-
+    @Query(value = "select id,\n" +
+            "       creation_date,\n" +
+            "       is_deleted,\n" +
+            "       last_login,\n" +
+            "       last_modified_date,\n" +
+            "       status,\n" +
+            "       username,\n" +
+            "       uuid,\n" +
+            "       fk_account_id,\n" +
+            "       last_status,\n" +
+            "      " +
+            " (select case when (count(1) > 0) then true else false end\n" +
+            "       " +
+            " from accounts,\n" +
+            "             blocked_accounts ba\n" +
+            "        where accounts.id = ba.fk_account_blocker_id\n" +
+            "          and accounts.id = :requester_id\n" +
+            "         " +
+            " and ba.fk_account_blocked_id = users.id) as isBlocked\n" +
+            "from users\n" +
+            "where username like concat(:username_to_look_for, '%') ",
+            countQuery = "select count(1) from users where username like concat(:username_to_look_for, '%') ",
+            nativeQuery = true)
     Page<User> getUsersByUserNameStartsWith(
             @Param("requester_id") Long requesterId, @Param("username_to_look_for") String userNameToLookFor,
-            @Param("to_order_by") String orderBy, Pageable pageable);
+            Pageable pageable);
 
     Set<User> getUsersByAccount_EmailAndIsDeletedIsFalse(String email, Sort sort);
 
