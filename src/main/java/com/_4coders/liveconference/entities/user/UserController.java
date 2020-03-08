@@ -216,7 +216,7 @@ public class UserController {
             log.atFinest().log("Request for retrieving a User with UUID [%s]", uuid);
 
             try {
-                User fetchedUser = userService.getUserByUUID(accountDetails.getAccount().getCurrentInUseUser().getUserName(), uuid);
+                User fetchedUser = userService.getUserByUUID(accountDetails.getAccount(), uuid);
                 return ResponseEntity.ok(fetchedUser);
             } catch (UserNotFoundException ex) {
                 return ResponseEntity.badRequest().body(null);
