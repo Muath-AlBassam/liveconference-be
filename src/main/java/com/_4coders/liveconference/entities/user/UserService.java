@@ -125,6 +125,7 @@ public class UserService {
                 pageable), pageable);
         users.forEach(user -> user.setIsBlocked(accountService.existsBlockedAccountByBlockerId(requester.getId(),
                 user.getAccount().getId())));
+        users.forEach(user -> user.setIsFriend(friendRepository.existsFriendByAdder_UserNameAndAdded_UserNameAndIsFriendIsTrue(requester.getCurrentInUseUser().getUserName(), user.getUserName())));
         return users;
     }
 
