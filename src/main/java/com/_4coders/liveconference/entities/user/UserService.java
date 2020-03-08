@@ -121,8 +121,8 @@ public class UserService {
         pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
                 SortUtil.userSortMapping(pageable.getSort(), true));
 
-        final Page<User> users = new Page<>(userRepository.getUsersByUserNameStartsWith(/*requester.getId(),*/ toGetUserName,
-                pageable), pageable);
+        final Page<User> users = new Page<>(userRepository.getUsersByUserNameStartsWith(/*requester.getId(),
+         */ toGetUserName, requester.getCurrentInUseUser().getUserName(), pageable), pageable);
         users.forEach(user -> user.setIsBlocked(accountService.existsBlockedAccountByBlockerId(requester.getId(),
                 user.getAccount().getId())));
         users.forEach(user -> user.setIsFriend(friendRepository.existsFriendByAdder_UserNameAndAdded_UserNameAndIsFriendIsTrue(requester.getCurrentInUseUser().getUserName(), user.getUserName())));
