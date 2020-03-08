@@ -35,11 +35,12 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 //            "        where accounts.id = ba.fk_account_blocker_id\n" +
 //            "          and accounts.id = :requester_id and ba.fk_account_blocked_id = users.id) as isBlocked\n" +
             "from users\n" +
-            "where username like concat(:username_to_look_for, '%') ",
+            "where username like concat(:username_to_look_for, '%') and username <> :requester_username",
             countQuery = "select count(1) from users where username like concat(:username_to_look_for, '%') ",
             nativeQuery = true)
     Page<User> getUsersByUserNameStartsWith(
             /*@Param("requester_id") Long requesterId,*/ @Param("username_to_look_for") String userNameToLookFor,
+                                                         @Param("requester_username") String requesterName,
                                                          Pageable pageable);
 
     Set<User> getUsersByAccount_EmailAndIsDeletedIsFalse(String email, Sort sort);
