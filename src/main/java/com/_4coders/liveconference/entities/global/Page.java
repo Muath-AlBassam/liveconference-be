@@ -16,6 +16,7 @@ import com._4coders.liveconference.entities.permission.PermissionViews;
 import com._4coders.liveconference.entities.role.RoleViews;
 import com._4coders.liveconference.entities.setting.SettingViews;
 import com._4coders.liveconference.entities.user.UserViews;
+import com._4coders.liveconference.entities.user.friend.FriendView;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.data.domain.Pageable;
 
@@ -46,7 +47,8 @@ import java.util.List;
         PermissionViews.OwnerDetails.class, PermissionViews.OwnerInformation.class, PermissionViews.SupportLittle.class,
         RoleViews.OwnerDetails.class, RoleViews.OwnerInformation.class, RoleViews.Others.class,
         SettingViews.OwnerDetails.class, SettingViews.OwnerInformation.class, SettingViews.Others.class,
-        UserViews.OwnerDetails.class, UserViews.OwnerInformation.class, UserViews.Others.class})
+        UserViews.OwnerDetails.class, UserViews.OwnerInformation.class, UserViews.Others.class,
+        FriendView.OwnerDetails.class, FriendView.OwnerInformation.class, FriendView.Others.class})
 public class Page<T> extends org.springframework.data.domain.PageImpl<T> {
     public Page(List<T> content, Pageable pageable, long total) {
         super(content, pageable, total);
