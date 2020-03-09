@@ -2,8 +2,10 @@ package com._4coders.liveconference.entities.global;
 
 import com._4coders.liveconference.entities.account.AccountDetails;
 import com._4coders.liveconference.entities.account.AccountViews;
+import com._4coders.liveconference.entities.conference.ConferenceViews;
 import com._4coders.liveconference.entities.role.system.SystemRole;
 import com._4coders.liveconference.entities.user.UserViews;
+import com._4coders.liveconference.entities.user.friend.FriendView;
 import lombok.extern.flogger.Flogger;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
@@ -27,17 +29,24 @@ public class RestJsonViewControllerAdvice extends AbstractMappingJacksonResponse
         //TODO CHECK for incoming request target and set the correct view as each entity has it's own views
         log.atFinest().log("Setting the Json view class before returning data");
         Class<?> viewClass;
-        if (serverHttpRequest.getURI().getPath().split("/").length < 3) {
+        final String[] splittedPath = serverHttpRequest.getURI().getPath().split("/");
+        if (splittedPath.length < 3) {
             viewClass = AccountViews.Others.class;
         } else {
-            switch (serverHttpRequest.getURI().getPath().split("/")[2].toLowerCase()) {
+            switch (splittedPath[2].toLowerCase()) {
                 case "accounts":
                     viewClass = getViewClassForAccountsEndPoint();
                     break;
                 case "users":
-                    viewClass = getViewClassForUsersEndPoint();
+                    if (splittedPath.length >= 4 && splittedPath[3].equalsIgnoreCase("friends")) {
+                        viewClass = getViewClassForFriendsEndPoint();
+                    } else {
+                        viewClass = getViewClassForUsersEndPoint();
+                    }
                     break;
-
+                case "o_conference":
+                    viewClass = getViewClassForOConferenceEndPoint();
+                    break;
                 default:
                     viewClass = AccountViews.Others.class;
             }
@@ -53,13 +62,47 @@ public class RestJsonViewControllerAdvice extends AbstractMappingJacksonResponse
         Set<SystemRole> roles = getRoles();
         if (roles != null) {
             if (roles.stream().anyMatch(systemRole -> systemRole.getPermissions().stream().anyMatch(systemPermission -> systemPermission.getAction().contains("_ADMIN")))) {
-                viewClass = AccountViews.Admin.class;
+                viewClass = UserViews.Admin.class;
             } else if (roles.stream().anyMatch(systemRole -> systemRole.getPermissions().stream().anyMatch(systemPermission -> systemPermission.getAction().contains("VIEW_ALL_USER_")))) {
-                viewClass = AccountViews.SupportAll.class;
+                viewClass = UserViews.SupportAll.class;
             } else if (roles.stream().anyMatch(systemRole -> systemRole.getPermissions().stream().anyMatch(systemPermission -> systemPermission.getAction().contains("VIEW_MEDIUM__USER_")))) {
-                viewClass = AccountViews.SupportMedium.class;
+                viewClass = UserViews.SupportMedium.class;
             } else if (roles.stream().anyMatch(systemRole -> systemRole.getPermissions().stream().anyMatch(systemPermission -> systemPermission.getAction().contains("VIEW_LITTLE__USER_")))) {
-                viewClass = AccountViews.SupportLittle.class;
+                viewClass = UserViews.SupportLittle.class;
+            }
+        }
+        return viewClass;
+    }
+
+    private Class<?> getViewClassForFriendsEndPoint() {
+        Class<?> viewClass = FriendView.Others.class;
+        Set<SystemRole> roles = getRoles();
+        if (roles != null) {
+            if (roles.stream().anyMatch(systemRole -> systemRole.getPermissions().stream().anyMatch(systemPermission -> systemPermission.getAction().contains("_ADMIN")))) {
+                viewClass = FriendView.Admin.class;
+            } else if (roles.stream().anyMatch(systemRole -> systemRole.getPermissions().stream().anyMatch(systemPermission -> systemPermission.getAction().contains("VIEW_ALL_USER_")))) {
+                viewClass = FriendView.SupportAll.class;
+            } else if (roles.stream().anyMatch(systemRole -> systemRole.getPermissions().stream().anyMatch(systemPermission -> systemPermission.getAction().contains("VIEW_MEDIUM__USER_")))) {
+                viewClass = FriendView.SupportMedium.class;
+            } else if (roles.stream().anyMatch(systemRole -> systemRole.getPermissions().stream().anyMatch(systemPermission -> systemPermission.getAction().contains("VIEW_LITTLE__USER_")))) {
+                viewClass = FriendView.SupportLittle.class;
+            }
+        }
+        return viewClass;
+    }
+
+    private Class<?> getViewClassForOConferenceEndPoint() {
+        Class<?> viewClass = ConferenceViews.Others.class;
+        Set<SystemRole> roles = getRoles();
+        if (roles != null) {
+            if (roles.stream().anyMatch(systemRole -> systemRole.getPermissions().stream().anyMatch(systemPermission -> systemPermission.getAction().contains("_ADMIN")))) {
+                viewClass = ConferenceViews.Admin.class;
+            } else if (roles.stream().anyMatch(systemRole -> systemRole.getPermissions().stream().anyMatch(systemPermission -> systemPermission.getAction().contains("VIEW_ALL_USER_")))) {
+                viewClass = ConferenceViews.SupportAll.class;
+            } else if (roles.stream().anyMatch(systemRole -> systemRole.getPermissions().stream().anyMatch(systemPermission -> systemPermission.getAction().contains("VIEW_MEDIUM__USER_")))) {
+                viewClass = ConferenceViews.SupportMedium.class;
+            } else if (roles.stream().anyMatch(systemRole -> systemRole.getPermissions().stream().anyMatch(systemPermission -> systemPermission.getAction().contains("VIEW_LITTLE__USER_")))) {
+                viewClass = ConferenceViews.SupportLittle.class;
             }
         }
         return viewClass;
