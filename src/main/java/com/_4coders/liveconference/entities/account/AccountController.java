@@ -268,6 +268,17 @@ public class AccountController {
     }
 
 
+    @PatchMapping
+    public ResponseEntity<Boolean> clearCurrentInUserUser(@AuthenticationPrincipal AccountDetails accountDetails) {
+        log.atFinest().log("Request for clearing current in use user for Account with UUID [%s]",
+                accountDetails.getAccount().getUuid());
+        try {
+            boolean result = accountService.clearCurrentInUseUser(accountDetails.getAccount());
+            return ResponseEntity.ok(result);
+        } catch (AccountNotFoundException ex) {
+            return ResponseEntity.badRequest().body(false);
+        }
+    }
 
 
 
