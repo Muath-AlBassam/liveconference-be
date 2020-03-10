@@ -269,6 +269,7 @@ public class AccountController {
 
 
     @PatchMapping
+    @Transactional
     public ResponseEntity<Boolean> clearCurrentInUserUser(@AuthenticationPrincipal AccountDetails accountDetails) {
         log.atFinest().log("Request for clearing current in use user for Account with UUID [%s]",
                 accountDetails.getAccount().getUuid());
