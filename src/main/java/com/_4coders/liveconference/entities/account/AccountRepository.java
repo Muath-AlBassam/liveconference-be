@@ -113,4 +113,8 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     @Modifying
     @Query(value = "update accounts set fk_current_in_use_user_id = :given_user_id where id = :given_account_id", nativeQuery = true)
     void updateCurrentInUseUser(@Param("given_account_id") Long accountId, @Param("given_user_id") Long userId);
+
+    @Modifying
+    @Query(value = "update accounts set fk_current_in_use_user_id = null where id = :given_account_id", nativeQuery = true)
+    void setCurrentInUseUserToNull(@Param("given_account_id") Long accountId);
 }

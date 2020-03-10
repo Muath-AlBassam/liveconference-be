@@ -80,6 +80,20 @@ public class AccountService {
         }
     }
 
+    public boolean clearCurrentInUseUser(Account account) throws AccountNotFoundException {
+        log.atFinest().log("Clearing current in use user for Account with UUID [%s]", account.getUuid());
+        log.atFinest().log("Checking the the given Account exists...");
+        if (!accountRepository.existsById(account.getId())) {
+            log.atFinest().log("No Account was found with the given data UUID[%s], ID[%s] and Email [%s] throwing " +
+                    "AccountNotFoundException", account.getUuid(), account.getId(), account.getEmail());
+            throw new AccountNotFoundException(String.format("No Account with given ID [%s] exists", account.getId()),
+                    account.getId());
+        } else {
+            accountRepository.setCurrentInUseUserToNull(account.getId());
+            return true;
+        }
+    }
+
     /**
      * Updates the {@code Email} for the given {@code Account} {@code UUID}
      *
@@ -93,7 +107,7 @@ public class AccountService {
         log.atFinest().log("Fetching an Account with UUID [%s] for email update", uuid);
         if (!accountRepository.existsAccountByUuid(uuid)) {//shall never happen
             log.atFinest().log("No Account with the given UUID [%s] exist throwing AccountNotFoundException", uuid);
-            throw new AccountNotFoundException(String.format("No Account with given ID [%s] exists", uuid), uuid);
+            throw new AccountNotFoundException(String.format("No Account with given UUID [%s] exists", uuid), uuid);
         } else {
             if (existAccountByEmail(newEmail)) {
                 log.atFinest().log("An Account with the given Email exists throwing AccountFoundException");
