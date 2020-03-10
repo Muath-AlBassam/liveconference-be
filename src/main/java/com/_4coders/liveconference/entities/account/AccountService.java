@@ -114,13 +114,15 @@ public class AccountService {
             if (account.getCurrentInUseUser() != null) {
                 account.getCurrentInUseUser().setLastStatus(account.getCurrentInUseUser().getStatus());
                 account.getCurrentInUseUser().setStatus(UserStatus.OFFLINE);
-                userService.updateUserStatusByUserUuid(account.getId(), account.getCurrentInUseUser().getUuid(), account.getCurrentInUseUser().getStatus().toString());
+                userService.updateUserStatusAndLastStatusByUserUuid(account.getId(), account.getCurrentInUseUser().getUuid(),
+                        account.getCurrentInUseUser().getStatus().toString(),
+                        account.getCurrentInUseUser().getLastStatus().toString());
             }
             accountRepository.updateCurrentInUseUser(account.getId(), toSet.get().getId());
             account.setCurrentInUseUser(toSet.get());
             account.getCurrentInUseUser().setStatus(account.getCurrentInUseUser().getLastStatus());
-            userService.updateUserStatusByUserUuid(account.getId(), account.getCurrentInUseUser().getUuid(),
-                    account.getCurrentInUseUser().getLastStatus().toString());
+            userService.updateUserStatusAndLastStatusByUserUuid(account.getId(), account.getCurrentInUseUser().getUuid(),
+                    account.getCurrentInUseUser().getLastStatus().toString(), null);
             return true;
         }
     }

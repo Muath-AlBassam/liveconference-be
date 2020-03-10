@@ -36,7 +36,6 @@ public class UserController {
     private UserService userService;
 
 
-
     /**
      * Creates new {@code User} for the currently logged in {@code Account}
      *
@@ -316,7 +315,8 @@ public class UserController {
                 accountDetails.getAccount().getUuid());
         try {
             boolean resultOfStatusUpdating =
-                    userService.updateUserStatusByUserUuid(accountDetails.getAccount().getId(), userUuid, status);
+                    userService.updateUserStatusAndLastStatusByUserUuid(accountDetails.getAccount().getId(), userUuid
+                            , status, null);
             return ResponseEntity.ok(true);
         } catch (AccountNotFoundException ex) {
             log.atSevere().log("AccountNotFoundException was catched in updateUserStatusForCurrentlyLoggedInAccountByUserUuid where " +

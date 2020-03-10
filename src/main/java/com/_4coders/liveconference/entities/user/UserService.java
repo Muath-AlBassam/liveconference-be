@@ -334,7 +334,7 @@ public class UserService {
      *                                  {@code Account} {@code ID}
      * @throws IllegalArgumentException if the given {@code Status} is unknown
      */
-    public boolean updateUserStatusByUserUuid(Long accountId, UUID userUuid, String status) throws AccountNotFoundException
+    public boolean updateUserStatusAndLastStatusByUserUuid(Long accountId, UUID userUuid, String status, String lastStatus) throws AccountNotFoundException
             , UserNotFoundException, IllegalArgumentException {
         log.atFinest().log("Initiating User status updating with AccountId [%d], UserUUID [%s] and status [%s]",
                 accountId, userUuid, status);
@@ -356,13 +356,16 @@ public class UserService {
                 log.atFinest().log("Setting the new User status");
                 UserStatus userStatus = UserStatus.valueOf(status.toUpperCase());
                 fetchedUser.setStatus(userStatus);
+                if (lastStatus != null) {
+                    log.atFinest().log("Setting the new User lastStatus");
+                    UserStatus userLastStatus = UserStatus.valueOf(lastStatus.toUpperCase());
+                    fetchedUser.setStatus(userLastStatus);
+                }
                 log.atFinest().log("Updating the User");
                 userRepository.saveAndFlush(fetchedUser);
                 return true;
             }
         }
-
-
     }
 
     /**
