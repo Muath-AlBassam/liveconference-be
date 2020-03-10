@@ -359,7 +359,7 @@ public class UserService {
                 if (lastStatus != null) {
                     log.atFinest().log("Setting the new User lastStatus");
                     UserStatus userLastStatus = UserStatus.valueOf(lastStatus.toUpperCase());
-                    fetchedUser.setStatus(userLastStatus);
+                    fetchedUser.setLastStatus(userLastStatus);
                 }
                 log.atFinest().log("Updating the User");
                 userRepository.saveAndFlush(fetchedUser);
