@@ -319,7 +319,7 @@ public class UserController {
             boolean resultOfStatusUpdating =
                     userService.updateUserStatusAndLastStatusByUserUuid(accountDetails.getAccount().getId(), userUuid
                             , status, null);
-            return ResponseEntity.ok(true);
+            return ResponseEntity.ok(resultOfStatusUpdating);
         } catch (AccountNotFoundException ex) {
             log.atSevere().log("AccountNotFoundException was catched in updateUserStatusForCurrentlyLoggedInAccountByUserUuid where " +
                     "it shouldn't be thrown, Account info [%s]", accountDetails.getAccount());

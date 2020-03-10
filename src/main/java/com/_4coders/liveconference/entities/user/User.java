@@ -121,6 +121,7 @@ public class User extends RepresentationModel<User> implements Serializable {
     @JsonView({UserViews.OwnerDetails.class})
 //        @JsonView({AccountViews.OwnerDetails.class,AccountViews.SupportMedium.class}) only if setting contains the logo
     private UserSetting userSetting;
+
     @Column(name = "creation_date", nullable = false, updatable = false)
     @CreatedDate
     @JsonView({AccountViews.OwnerInformation.class, AccountViews.SupportMedium.class,

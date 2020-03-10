@@ -90,6 +90,7 @@ public class AccountService {
                     account.getId());
         } else {
             accountRepository.setCurrentInUseUserToNull(account.getId());
+            account.setCurrentInUseUser(null);
             return true;
         }
     }
