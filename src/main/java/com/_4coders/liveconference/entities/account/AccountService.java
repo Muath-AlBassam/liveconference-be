@@ -133,25 +133,26 @@ public class AccountService {
             log.atFinest().log("No User was found with UUID [%s] for the Account with UUID[%s]", uuid, account.getUuid());
             throw new UserNotFoundException(String.format("No User was found with UUID [%s] for the Account with UUID[%s]", uuid, account.getUuid()), uuid);
         } else {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            AccountDetails principal = (AccountDetails) authentication.getPrincipal();
             if (account.getCurrentInUseUser() != null) {
-                account.getCurrentInUseUser().setLastStatus(account.getCurrentInUseUser().getStatus());
-                account.getCurrentInUseUser().setStatus(UserStatus.OFFLINE);
-                userService.updateUserStatusAndLastStatusByUserUuid(account.getId(), account.getCurrentInUseUser().getUuid(),
-                        account.getCurrentInUseUser().getStatus().toString(),
-                        account.getCurrentInUseUser().getLastStatus().toString());
+                User currUser =
+                        principal.getAccount().getUsers().stream().filter(user -> user.getUuid().equals(account.getCurrentInUseUser().getUuid())).findFirst().get();
+                currUser.setLastStatus(account.getCurrentInUseUser().getStatus());
+                currUser.setStatus(UserStatus.OFFLINE);
+                userService.updateUserStatusAndLastStatusByUserUuid(account, currUser.getUuid(),
+                        currUser.getStatus().toString(),
+                        currUser.getLastStatus().toString());
             }
             accountRepository.updateCurrentInUseUser(account.getId(), toSet.get().getId());
             toSet.get().setStatus(toSet.get().getLastStatus());
-            userService.updateUserStatusAndLastStatusByUserUuid(account.getId(), toSet.get().getUuid(),
-                    toSet.get().getLastStatus().toString(), null);
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            AccountDetails principal = (AccountDetails) authentication.getPrincipal();
             principal.getAccount().setCurrentInUseUser(toSet.get());
-            principal.getAccount().getUsers().forEach(user -> userService.getUserByUUID(principal.getAccount(), user.getUuid()));
             principal.getAccount().setDefaultUser(principal.getAccount().getUsers().stream().filter(user -> user.getUuid().equals(principal.getAccount().getDefaultUser().getUuid())).findFirst().get());
             Authentication newAuth = new UsernamePasswordAuthenticationToken(principal,
                     authentication.getCredentials(), authentication.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(newAuth);
+            userService.updateUserStatusAndLastStatusByUserUuid(account, toSet.get().getUuid(),
+                    toSet.get().getLastStatus().toString(), null);
             return true;
         }
     }
