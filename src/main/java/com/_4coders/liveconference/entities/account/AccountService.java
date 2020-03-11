@@ -94,10 +94,10 @@ public class AccountService {
         } else {
             accountRepository.setCurrentInUseUserToNull(account.getId());
             account.setCurrentInUseUser(null);
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            Authentication newAuth = new UsernamePasswordAuthenticationToken(authentication.getPrincipal(),
-                    authentication.getCredentials(), authentication.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(newAuth);
+//            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//            Authentication newAuth = new UsernamePasswordAuthenticationToken(authentication.getPrincipal(),
+//                    authentication.getCredentials(), authentication.getAuthorities());
+//            SecurityContextHolder.getContext().setAuthentication(newAuth);
             return true;
         }
     }
