@@ -17,6 +17,9 @@ import com._4coders.liveconference.exception.ipAddress.*;
 import com._4coders.liveconference.exception.user.UserNotFoundException;
 import lombok.extern.flogger.Flogger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -91,6 +94,10 @@ public class AccountService {
         } else {
             accountRepository.setCurrentInUseUserToNull(account.getId());
             account.setCurrentInUseUser(null);
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            Authentication newAuth = new UsernamePasswordAuthenticationToken(authentication.getPrincipal(),
+                    authentication.getCredentials(), authentication.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(newAuth);
             return true;
         }
     }
