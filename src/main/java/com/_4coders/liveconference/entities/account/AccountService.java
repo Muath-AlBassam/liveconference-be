@@ -141,10 +141,17 @@ public class AccountService {
                         account.getCurrentInUseUser().getLastStatus().toString());
             }
             accountRepository.updateCurrentInUseUser(account.getId(), toSet.get().getId());
-            account.setCurrentInUseUser(toSet.get());
-            account.getCurrentInUseUser().setStatus(account.getCurrentInUseUser().getLastStatus());
-            userService.updateUserStatusAndLastStatusByUserUuid(account.getId(), account.getCurrentInUseUser().getUuid(),
-                    account.getCurrentInUseUser().getLastStatus().toString(), null);
+            toSet.get().setStatus(toSet.get().getLastStatus());
+            userService.updateUserStatusAndLastStatusByUserUuid(account.getId(), toSet.get().getUuid(),
+                    toSet.get().getLastStatus().toString(), null);
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            AccountDetails principal = (AccountDetails) authentication.getPrincipal();
+            principal.getAccount().setCurrentInUseUser(toSet.get());
+            principal.getAccount().getUsers().forEach(user -> userService.getUserByUUID(principal.getAccount(), user.getUuid()));
+            principal.getAccount().setDefaultUser(principal.getAccount().getUsers().stream().filter(user -> user.getUuid().equals(principal.getAccount().getDefaultUser().getUuid())).findFirst().get());
+            Authentication newAuth = new UsernamePasswordAuthenticationToken(principal,
+                    authentication.getCredentials(), authentication.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(newAuth);
             return true;
         }
     }
