@@ -215,7 +215,6 @@ public class UserController {
             return ResponseEntity.badRequest().body(null);
         } else {
             log.atFinest().log("Request for retrieving a User with UUID [%s]", uuid);
-
             try {
                 User fetchedUser = userService.getUserByUUID(accountDetails.getAccount(), uuid);
                 return ResponseEntity.ok(fetchedUser);
@@ -315,22 +314,26 @@ public class UserController {
         log.atFinest().log("Request for User status [%s] updating with User UUID [%s] for currently logged in Account" +
                         "with Email [%s] and UUID [%s]", status, userUuid, accountDetails.getAccount().getEmail(),
                 accountDetails.getAccount().getUuid());
-        try {
-            boolean resultOfStatusUpdating =
-                    userService.updateUserStatusAndLastStatusByUserUuid(accountDetails.getAccount().getId(), userUuid
-                            , status, null);
-            return ResponseEntity.ok(resultOfStatusUpdating);
-        } catch (AccountNotFoundException ex) {
-            log.atSevere().log("AccountNotFoundException was catched in updateUserStatusForCurrentlyLoggedInAccountByUserUuid where " +
-                    "it shouldn't be thrown, Account info [%s]", accountDetails.getAccount());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
-        } catch (UserNotFoundException | IllegalArgumentException ex) {
-            log.atFine().log("UserNotFoundException or IllegalArgumentException was catched in " +
-                    "updateUserStatusForCurrentlyLoggedInAccountByUserUuid returning HTTP BAD_REQUEST(400)");
+        if (accountDetails.getAccount().getCurrentInUseUser() == null || !accountDetails.getAccount().getCurrentInUseUser().getUuid().equals(userUuid)) {
+            //TODO FIXME change this by removing the taken UUID
             return ResponseEntity.badRequest().body(null);
+        } else {
+            try {
+                boolean resultOfStatusUpdating =
+                        userService.updateUserStatusAndLastStatusByUserUuid(accountDetails.getAccount(), userUuid
+                                , status, null);
+                return ResponseEntity.ok(resultOfStatusUpdating);
+            } catch (AccountNotFoundException ex) {
+                log.atSevere().log("AccountNotFoundException was catched in updateUserStatusForCurrentlyLoggedInAccountByUserUuid where " +
+                        "it shouldn't be thrown, Account info [%s]", accountDetails.getAccount());
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+            } catch (UserNotFoundException | IllegalArgumentException ex) {
+                log.atFine().log("UserNotFoundException or IllegalArgumentException was catched in " +
+                        "updateUserStatusForCurrentlyLoggedInAccountByUserUuid returning HTTP BAD_REQUEST(400)");
+                return ResponseEntity.badRequest().body(null);
+            }
         }
     }
-
 
     //TODO update users userName for support
     //TODO Add get Page<User> by given userName

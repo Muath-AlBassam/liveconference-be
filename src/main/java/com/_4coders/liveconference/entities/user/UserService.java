@@ -1,6 +1,7 @@
 package com._4coders.liveconference.entities.user;
 
 import com._4coders.liveconference.entities.account.Account;
+import com._4coders.liveconference.entities.account.AccountDetails;
 import com._4coders.liveconference.entities.account.AccountService;
 import com._4coders.liveconference.entities.global.Page;
 import com._4coders.liveconference.entities.setting.user.UserSetting;
@@ -17,6 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -325,44 +329,53 @@ public class UserService {
     /**
      * Updates a {@code User} {@code Status} from the given {@code AccountID} and {@code User} {@code UUID}
      *
-     * @param accountId the {@code ID} of the owner {@code Account} of the {@code User} to update
-     * @param userUuid  the {@code UUID} of the {@code User} to update
-     * @param status    the new {@code Status} for the {@code User} to update
+     * @param account  the {@code Account} of the owner of the {@code UUID}
+     * @param userUuid the {@code UUID} of the {@code User} to update
+     * @param status   the new {@code Status} for the {@code User} to update
      * @return true if the {@code Status} was updated
      * @throws AccountNotFoundException if the given {@code ID} was not related to any {@code Account}
      * @throws UserNotFoundException    if the given {@code User} {@code UUID} wasn't found in relation with the given
      *                                  {@code Account} {@code ID}
      * @throws IllegalArgumentException if the given {@code Status} is unknown
      */
-    public boolean updateUserStatusAndLastStatusByUserUuid(Long accountId, UUID userUuid, String status, String lastStatus) throws AccountNotFoundException
+    public boolean updateUserStatusAndLastStatusByUserUuid(Account account, UUID userUuid, String status,
+                                                           String lastStatus) throws AccountNotFoundException
             , UserNotFoundException, IllegalArgumentException {
         log.atFinest().log("Initiating User status updating with AccountId [%d], UserUUID [%s] and status [%s]",
-                accountId, userUuid, status);
-        log.atFinest().log("Validating that the given AccountId [%d] exists", accountId);
-        if (!accountService.existAccountByIdAndIsActiveAndIsNotBlocked(accountId)) {//shall never happen
+                account.getId(), userUuid, status);
+        log.atFinest().log("Validating that the given AccountId [%d] exists", account.getId());
+        if (!accountService.existAccountByIdAndIsActiveAndIsNotBlocked(account.getId())) {//shall never happen
             log.atSevere().log("AccountNotFoundException was thrown in updateUserStatusByUserUuid where it Should never happen, " +
-                    "accountId [%d]", accountId);
-            throw new AccountNotFoundException(String.format("No Account with the given Id [%d] exist", accountId));
+                    "accountId [%d]", account.getId());
+            throw new AccountNotFoundException(String.format("No Account with the given Id [%d] exist", account.getId()));
         } else {
             log.atFinest().log("Validating the a User with the given UUID exist ...");
-            User fetchedUser = userRepository.getUserByUuidAndAccount_IdAndIsDeletedIsFalse(userUuid, accountId);
+            User fetchedUser = userRepository.getUserByUuidAndAccount_IdAndIsDeletedIsFalse(userUuid, account.getId());
             if (fetchedUser == null) {
                 log.atFine().log("The given UUID [%s] wasn't found with the given Account ID [%d] in DB either no " +
-                        "users exist with such relation or it's deleted", userUuid, accountId);
+                        "users exist with such relation or it's deleted", userUuid, account.getId());
                 throw new UserNotFoundException(String.format("No User was found with UUID [%s] and Account ID [%d] " +
-                        "relation and isn't delete", userUuid, accountId));
+                        "relation and isn't delete", userUuid, account.getId()));
             } else {
                 log.atFinest().log("User got fetched from DB");
                 log.atFinest().log("Setting the new User status");
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                AccountDetails principal = (AccountDetails) authentication.getPrincipal();
+                User currUser = principal.getAccount().getCurrentInUseUser();
                 UserStatus userStatus = UserStatus.valueOf(status.toUpperCase());
                 fetchedUser.setStatus(userStatus);
+                currUser.setStatus(userStatus);
                 if (lastStatus != null) {
                     log.atFinest().log("Setting the new User lastStatus");
                     UserStatus userLastStatus = UserStatus.valueOf(lastStatus.toUpperCase());
                     fetchedUser.setLastStatus(userLastStatus);
+                    currUser.setLastStatus(userLastStatus);
                 }
                 log.atFinest().log("Updating the User");
-                userRepository.saveAndFlush(fetchedUser);
+                userRepository.saveAndFlush(currUser);
+                Authentication newAuth = new UsernamePasswordAuthenticationToken(principal,
+                        authentication.getCredentials(), authentication.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(newAuth);
                 return true;
             }
         }
