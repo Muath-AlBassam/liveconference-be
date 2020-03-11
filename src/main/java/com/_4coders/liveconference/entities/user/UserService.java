@@ -91,6 +91,7 @@ public class UserService {
                     if (account.getDefaultUser() == null) {//mean no User has been created yet
                         account.setDefaultUser(toRegister);
                         account.setUsers(new HashSet<>());
+                        accountService.updateAccount(account);
                     }
                     account.getUsers().add(toRegister);
                     toRegister = userRepository.saveAndFlush(toRegister);//todo update context after account update
