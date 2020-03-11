@@ -94,8 +94,12 @@ public class UserService {
                     }
                     account.getUsers().add(toRegister);
                     toRegister = userRepository.saveAndFlush(toRegister);//todo update context after account update
-                    account.getUsers().add(toRegister);
-                    accountService.updateAccount(account);//TODO fix shall we update the lastModified date only?
+                    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                    AccountDetails principal = (AccountDetails) authentication.getPrincipal();
+                    principal.getAccount().getUsers().add(toRegister);
+                    Authentication newAuth = new UsernamePasswordAuthenticationToken(principal,
+                            authentication.getCredentials(), authentication.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(newAuth);
                     log.atFinest().log("User got persisted, it's info [%s]", toRegister);
                     return toRegister;
                 }
