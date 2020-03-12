@@ -92,6 +92,7 @@ public class UserService {
                     AccountDetails principal = (AccountDetails) authentication.getPrincipal();
                     if (account.getDefaultUser() == null) {//mean no User has been created yet
                         account.setDefaultUser(toRegister);
+                        principal.getAccount().setDefaultUser(toRegister);
                         account.setUsers(new HashSet<>());
                         principal.getAccount().setUsers(new HashSet<>());
                         accountService.updateAccount(account);
