@@ -88,16 +88,17 @@ public class UserService {
                     toRegister.setUserSetting(userSetting);
                     log.atFinest().log("All data has been initiated, User info [%s]", toRegister);
                     log.atFinest().log("Persisting the User ...");
+                    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                    AccountDetails principal = (AccountDetails) authentication.getPrincipal();
                     if (account.getDefaultUser() == null) {//mean no User has been created yet
                         account.setDefaultUser(toRegister);
                         account.setUsers(new HashSet<>());
+                        principal.getAccount().setUsers(new HashSet<>());
                         accountService.updateAccount(account);
                     }
                     account.getUsers().add(toRegister);
-                    toRegister = userRepository.saveAndFlush(toRegister);//todo update context after account update
-                    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                    AccountDetails principal = (AccountDetails) authentication.getPrincipal();
                     principal.getAccount().getUsers().add(toRegister);
+                    toRegister = userRepository.saveAndFlush(toRegister);//todo update context after account update
                     Authentication newAuth = new UsernamePasswordAuthenticationToken(principal,
                             authentication.getCredentials(), authentication.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(newAuth);
