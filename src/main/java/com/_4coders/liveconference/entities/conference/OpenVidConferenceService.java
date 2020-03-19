@@ -64,7 +64,7 @@ public class OpenVidConferenceService {
         return getSessionByID(sessionID);
     }
 
-    public boolean closeConference(UUID sessionID) throws OpenViduJavaClientException, OpenViduHttpException {
+    public boolean closeConference(UUID sessionID) throws OpenViduJavaClientException, OpenViduHttpException, OpenVidConferenceNotExisting {
         log.atFinest().log("Closing OpenVid Session for sessionID [%s] ", sessionID);
         Session fetchedSession = getSessionByID(sessionID);
         if (fetchedSession == null) {
