@@ -39,7 +39,22 @@ public class OpenVidSessionJsonSerializer extends JsonSerializer<Session> {
             jsonGenerator.writeObjectField("defaultRecordingLayout", session.getProperties().defaultRecordingLayout());
             jsonGenerator.writeObjectField("defaultOutputMode", session.getProperties().defaultOutputMode());
             jsonGenerator.writeEndObject();
+            jsonGenerator.writeFieldName("clientData");
+            jsonGenerator.writeStartArray();
+            session.getActiveConnections().forEach(connection -> {
+                try {
+                    jsonGenerator.writeStartObject();
+                    jsonGenerator.writeStringField("connectionId", connection.getConnectionId());
+                    jsonGenerator.writeStringField("data", connection.getClientData());
+                    jsonGenerator.writeEndObject();
+                } catch (IOException e) {
+                    log.atConfig().log("Error in writing OpenVidu Session object to Json exception message [%s] " +
+                                    "inside the active session",
+                            e.getMessage());
+                }
 
+            });
+            jsonGenerator.writeEndArray();
 
         } catch (IOException e) {
             log.atConfig().log("Error in writing OpenVidu Session object to Json exception message [%s]",
