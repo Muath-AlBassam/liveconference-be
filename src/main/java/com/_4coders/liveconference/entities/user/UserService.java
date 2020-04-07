@@ -234,6 +234,12 @@ public class UserService {
                 fetchedUser.setIsDeleted(true);
                 log.atFinest().log("Starting the deletion process ...");
                 userRepository.saveAndFlush(fetchedUser);
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                AccountDetails principal = (AccountDetails) authentication.getPrincipal();
+                principal.getAccount().getUsers().removeIf(user -> user.getUserName().equals(userName));
+                Authentication newAuth = new UsernamePasswordAuthenticationToken(principal,
+                        authentication.getCredentials(), authentication.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(newAuth);
                 return true;
             }
         }
@@ -326,6 +332,18 @@ public class UserService {
                     log.atFinest().log("Setting the new UserName");
                     fetchedUser.setUserName(userName);
                     log.atFinest().log("Updating the User");
+
+                    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                    AccountDetails principal = (AccountDetails) authentication.getPrincipal();
+                    principal.getAccount().getUsers().forEach(user -> {
+                        if (user.getUuid().equals(userUuid)) {
+                            user.setUserName(userName);
+                        }
+                    });
+                    Authentication newAuth = new UsernamePasswordAuthenticationToken(principal,
+                            authentication.getCredentials(), authentication.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(newAuth);
+
                     return userRepository.saveAndFlush(fetchedUser);
                 }
             }

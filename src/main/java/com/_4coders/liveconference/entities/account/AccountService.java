@@ -79,6 +79,12 @@ public class AccountService {
             } else {
                 log.atFinest().log("Updating the email...");
                 accountRepository.updateEmailById(accountId, newEmail);
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                AccountDetails principal = (AccountDetails) authentication.getPrincipal();
+                principal.getAccount().setEmail(newEmail);
+                Authentication newAuth = new UsernamePasswordAuthenticationToken(principal,
+                        authentication.getCredentials(), authentication.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(newAuth);
             }
         }
     }
@@ -95,7 +101,10 @@ public class AccountService {
             accountRepository.setCurrentInUseUserToNull(account.getId());
             account.setCurrentInUseUser(null);
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            Authentication newAuth = new UsernamePasswordAuthenticationToken(authentication.getPrincipal(),
+            AccountDetails principal = (AccountDetails) authentication.getPrincipal();
+            principal.getAccount().setCurrentInUseUser(null);
+            //todo check if there is a need for the principal or it fetch from db anyway?
+            Authentication newAuth = new UsernamePasswordAuthenticationToken(principal,
                     authentication.getCredentials(), authentication.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(newAuth);
             return true;
@@ -359,18 +368,30 @@ public class AccountService {
                 throw new AccountFoundException(String.format("Account with given PhoneNumber [%s] exists",
                         phoneNumber));
             } else {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                AccountDetails principal = (AccountDetails) authentication.getPrincipal();
                 log.atFinest().log("No Account was found with the given PhoneNumber");
                 log.atFinest().log("Updating the values in memory...");
                 log.atFinest().log("updating the PhoneNumber");
                 toUpdate.setPhoneNumber(phoneNumber);
+                principal.getAccount().setPhoneNumber(phoneNumber);
                 log.atFinest().log("Updating the FirstName [%s], MiddleName [%s] and LastName [%s]", firstName, middleName,
                         lastName);
                 toUpdate.setFirstName(firstName);
+                principal.getAccount().setFirstName(firstName);
                 toUpdate.setMiddleName(middleName);
+                principal.getAccount().setMiddleName(middleName);
                 toUpdate.setLastName(lastName);
+                principal.getAccount().setLastName(lastName);
                 log.atFinest().log("Updating the Address");
                 toUpdate.setAddress(address);
+                principal.getAccount().setAddress(address);
                 log.atFinest().log("Updating the Account in the DB");
+
+                principal.getAccount().setCurrentInUseUser(null);
+                Authentication newAuth = new UsernamePasswordAuthenticationToken(principal,
+                        authentication.getCredentials(), authentication.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(newAuth);
                 return accountRepository.save(toUpdate);
             }
         }

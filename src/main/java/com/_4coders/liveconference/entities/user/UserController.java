@@ -250,6 +250,7 @@ public class UserController {
         }
     }
 
+    //FIXME solve the issue when the user is delete but not updated in the user context
     //only for support user, Secure
     @DeleteMapping(value = "/support", params = "userName")
     @Transactional
@@ -267,6 +268,7 @@ public class UserController {
         }
     }
 
+    //FIXME same
     //only for support user, Secure
     @DeleteMapping(value = "/support", params = "uuid")
     @Transactional
