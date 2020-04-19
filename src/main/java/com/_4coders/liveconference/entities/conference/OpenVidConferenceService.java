@@ -1,11 +1,18 @@
 package com._4coders.liveconference.entities.conference;
 
+import com._4coders.liveconference.entities.account.Account;
+import com._4coders.liveconference.entities.global.MailSendingService;
+import com._4coders.liveconference.entities.user.User;
+import com._4coders.liveconference.entities.user.UserService;
 import com._4coders.liveconference.exception.common.UUIDUniquenessException;
 import com._4coders.liveconference.exception.conference.OpenVidConferenceNotExisting;
+import com._4coders.liveconference.exception.user.UserNotFoundException;
 import io.openvidu.java.client.*;
 import lombok.extern.flogger.Flogger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.mail.MessagingException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,9 +21,16 @@ import java.util.UUID;
 public class OpenVidConferenceService {
 
     //user: OPENVIDUAPP, pass: [your private secret])
-    private final static String OPEN_VID_URL = "https://localhost:4443/";
+    private final static String OPEN_VID_URL = "https://ec2-3-21-227-197.us-east-2.compute.amazonaws.com:4443";//REMOVE
+    //    private final static String OPEN_VID_URL = "https://localhost:4443/";
     private final static String SECRET = "MY_SECRET";
     private final static OpenVidu openVidu = new OpenVidu(OPEN_VID_URL, SECRET);
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private MailSendingService mailSendingService;
 
 
     public Session createConference() throws UUIDUniquenessException, OpenViduJavaClientException, OpenViduHttpException {
@@ -78,6 +92,25 @@ public class OpenVidConferenceService {
         }
     }
 
+    public boolean sendCallInviteEmail(Account account, String targetUserName, String sessionId) throws UserNotFoundException, MessagingException {
+        if (account.getCurrentInUseUser() == null) {
+            log.atFinest().log("No currentInUseUser for Account with email [%s]", account.getEmail());
+            return false;
+        } else {
+            User target = userService.getUserByUserName(account, targetUserName);
+            boolean targetUserBlockedCurrentUser = userService.getUserByUserName(target.getAccount(),
+                    account.getCurrentInUseUser().getUserName()).getIsBlocked();
+            if (!target.getIsFriend() || target.getIsBlocked() || targetUserBlockedCurrentUser) {
+                log.atFinest().log("target isn't a friend [%b], target is blocked [%b], target has blocked sender " +
+                        "[%b]", !target.getIsFriend(), target.getIsBlocked(), targetUserBlockedCurrentUser);
+                return false;
+            } else {
+                mailSendingService.sendCallInviteEmail(account.getCurrentInUseUser(), target.getAccount(), sessionId);
+                log.atFinest().log("Email was sent");
+                return true;
+            }
+        }
+    }
     //Think shall we provide retrieving all session or not (i think not)
 
     private Session createSessionWithUUID(UUID uuid) throws OpenViduJavaClientException, OpenViduHttpException {
