@@ -1,7 +1,9 @@
 package com._4coders.liveconference.entities.conference;
 
+import com._4coders.liveconference.entities.account.AccountDetails;
 import com._4coders.liveconference.exception.common.UUIDUniquenessException;
 import com._4coders.liveconference.exception.conference.OpenVidConferenceNotExisting;
+import com._4coders.liveconference.exception.user.UserNotFoundException;
 import com._4coders.liveconference.validator.UUIDConstraint;
 import io.openvidu.java.client.OpenViduHttpException;
 import io.openvidu.java.client.OpenViduJavaClientException;
@@ -11,9 +13,11 @@ import lombok.extern.flogger.Flogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.mail.MessagingException;
 import javax.validation.constraints.NotNull;
 import java.util.UUID;
 
@@ -74,6 +78,22 @@ public class OpenVidConferenceController {
             return ResponseEntity.badRequest().body(null);
         } catch (OpenViduJavaClientException | OpenViduHttpException ex) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+        }
+    }
+
+    @PostMapping(value = "/sendEmailInvitation", params = {"targetUserName", "sessionId"})
+    public ResponseEntity<Boolean> sendCallInviteEmail(@AuthenticationPrincipal AccountDetails accountDetails,
+                                                       @RequestParam("targetUserName") String targetUserName,
+                                                       @RequestParam("sessionId") String sessionId) {
+        log.atFinest().log("Request for sending email invitation from user with Email [%s] to user [%s] with session" +
+                " id [%s]", accountDetails.getUsername(), targetUserName, sessionId);
+
+        try {
+            boolean result = openVidConferenceService.sendCallInviteEmail(accountDetails.getAccount(), targetUserName,
+                    sessionId);
+            return ResponseEntity.ok(true);
+        } catch (UserNotFoundException | MessagingException ex) {
+            return ResponseEntity.badRequest().body(false);
         }
     }
 }
