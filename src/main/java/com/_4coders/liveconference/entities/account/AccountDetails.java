@@ -32,6 +32,9 @@ public class AccountDetails implements UserDetails {
         return account.getRoles().stream().map(systemRole -> new SimpleGrantedAuthority(systemRole.getName())).collect(Collectors.toSet());
     }
 
+    /**
+     * @return the email of the {@link Account}
+     */
     @Override
     public String getUsername() {
         return account.getEmail();
