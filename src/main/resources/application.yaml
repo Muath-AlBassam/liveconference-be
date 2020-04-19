@@ -27,12 +27,12 @@ spring:
       cleanup-cron: 0 0 6 * * ? # at 0 sec 0 min hour 6 all days of month all months any day of the week
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     format_sql: true
     show_sql: true
   datasource:
     url: jdbc:postgresql://localhost:5432/live_conference
-    username: Muath Albassam
+    username: postgres
     password: Muath20111418
   jackson:
     serialization:

@@ -21,8 +21,8 @@ import java.util.UUID;
 public class OpenVidConferenceService {
 
     //user: OPENVIDUAPP, pass: [your private secret])
-    private final static String OPEN_VID_URL = "https://ec2-3-21-227-197.us-east-2.compute.amazonaws.com:4443";//REMOVE
-    //    private final static String OPEN_VID_URL = "https://localhost:4443/";
+//    private final static String OPEN_VID_URL = "https://ec2-3-21-227-197.us-east-2.compute.amazonaws.com:4443";
+    private final static String OPEN_VID_URL = "https://localhost:4443/";
     private final static String SECRET = "MY_SECRET";
     private final static OpenVidu openVidu = new OpenVidu(OPEN_VID_URL, SECRET);
 
