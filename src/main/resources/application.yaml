@@ -35,8 +35,11 @@ spring:
     username: 4Coder
     password: 4Coder
   jackson:
+#    mapper: #will show any field that doesn't have @jsonView
+    #          DEFAULT_VIEW_INCLUSION: true
     serialization:
       INDENT_OUTPUT: true
+
   mail:
     host: smtp.gmail.com
     port: 587
