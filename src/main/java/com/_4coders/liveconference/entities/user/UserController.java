@@ -31,6 +31,8 @@ import java.util.UUID;
 @Flogger
 @Validated
 @RequestMapping("/flogger/users")
+@CrossOrigin(origins = "*", exposedHeaders = "X-Auth-Token", allowedHeaders = "*", methods =
+        {RequestMethod.DELETE, RequestMethod.GET, RequestMethod.POST})
 public class UserController {
     @Autowired
     private UserService userService;
