@@ -20,11 +20,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.session.data.redis.RedisIndexedSessionRepository;
+import org.springframework.session.security.SpringSessionBackedSessionRegistry;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Optional;
@@ -57,6 +63,13 @@ public class AccountService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+
+    @Autowired
+    private RedisIndexedSessionRepository sessionRepository;
+
+    private SpringSessionBackedSessionRegistry sessionRegistry;
+
 
     /**
      * Updates the {@code Email} for the given {@code Account} Id
@@ -98,18 +111,50 @@ public class AccountService {
             throw new AccountNotFoundException(String.format("No Account with given ID [%s] exists", account.getId()),
                     account.getId());
         } else {
-            accountRepository.setCurrentInUseUserToNull(account.getId());
-            account.setCurrentInUseUser(null);
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             AccountDetails principal = (AccountDetails) authentication.getPrincipal();
-            principal.getAccount().setCurrentInUseUser(null);
-            //todo check if there is a need for the principal or it fetch from db anyway?
-            Authentication newAuth = new UsernamePasswordAuthenticationToken(principal,
-                    authentication.getCredentials(), authentication.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(newAuth);
+            if (principal.getAccount().getCurrentInUseUser() != null) {
+                accountRepository.setCurrentInUseUserToNull(account.getId());
+                account.setCurrentInUseUser(null);
+                principal.getAccount().getCurrentInUseUser().setLastStatus(principal.getAccount().getCurrentInUseUser().getStatus());
+                principal.getAccount().getCurrentInUseUser().setStatus(UserStatus.OFFLINE);
+                userService.updateUserStatusAndLastStatusByUserUuid(principal.getAccount(),
+                        principal.getAccount().getCurrentInUseUser().getUuid(),
+                        principal.getAccount().getCurrentInUseUser().getStatus().toString(),
+                        principal.getAccount().getCurrentInUseUser().getLastStatus().toString());
+                principal.getAccount().setCurrentInUseUser(null);
+                Authentication newAuth = new UsernamePasswordAuthenticationToken(principal,
+                        authentication.getCredentials(), authentication.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(newAuth);
+            }
             return true;
         }
     }
+
+    public boolean logout(Authentication authentication, HttpServletRequest httpServletRequest,
+                          HttpServletResponse httpServletResponse) {
+        setUpSessionRegistry();
+        final String sessionId = RequestContextHolder.currentRequestAttributes().getSessionId();
+        final SessionInformation sessionInformation = sessionRegistry.getSessionInformation(sessionId);
+        AccountDetails principal = (AccountDetails) authentication.getPrincipal();
+        if (sessionInformation != null) {
+            sessionInformation.expireNow();
+            new SecurityContextLogoutHandler().logout(httpServletRequest, httpServletResponse, authentication);
+            sessionRepository.deleteById(sessionId);
+            clearCurrentInUseUser(principal.getAccount());
+            accountRepository.updateLastLogoutDate(principal.getAccount().getId(), LocalDateTime.now());
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private void setUpSessionRegistry() {
+        if (sessionRegistry == null) {
+            sessionRegistry = new SpringSessionBackedSessionRegistry(sessionRepository);
+        }
+    }
+
 
     /**
      * Updates the {@code Email} for the given {@code Account} {@code UUID}

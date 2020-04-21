@@ -75,7 +75,7 @@ public class OpenVidConferenceController {
             boolean result = openVidConferenceService.closeConference(sessionID);
             return ResponseEntity.ok(result);
         } catch (OpenVidConferenceNotExisting ex) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body(false);
         } catch (OpenViduJavaClientException | OpenViduHttpException ex) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
         }

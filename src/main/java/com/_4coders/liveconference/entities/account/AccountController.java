@@ -18,14 +18,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.session.SessionInformation;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.session.data.redis.RedisIndexedSessionRepository;
 import org.springframework.session.security.SpringSessionBackedSessionRegistry;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.RequestContextHolder;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -298,23 +295,10 @@ public class AccountController {
                                           HttpServletResponse httpServletResponse) {
         log.atFinest().log("Request for logging of User with Email [%s]",
                 ((AccountDetails) authentication.getPrincipal()).getUsername());
-        setUpSessionRegistry();
-        final String sessionId = RequestContextHolder.currentRequestAttributes().getSessionId();
-        final SessionInformation sessionInformation = sessionRegistry.getSessionInformation(sessionId);
-        if (sessionInformation != null) {
-            sessionInformation.expireNow();
-            new SecurityContextLogoutHandler().logout(httpServletRequest, httpServletResponse, authentication);
-            sessionRepository.deleteById(sessionId);
+        if (accountService.logout(authentication, httpServletRequest, httpServletResponse)) {
             return ResponseEntity.ok(true);
         } else {
             return ResponseEntity.badRequest().body(false);
-        }
-
-    }
-
-    private void setUpSessionRegistry() {
-        if (sessionRegistry == null) {
-            sessionRegistry = new SpringSessionBackedSessionRegistry(sessionRepository);
         }
     }
 

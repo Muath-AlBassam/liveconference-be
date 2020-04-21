@@ -50,12 +50,10 @@ public class OpenVidConferenceService {
                 log.atSevere().log("Throwing the exception [$s]", UUIDUniquenessException.class);
                 throw new UUIDUniquenessException(String.format("No unique UUID was found after [%d] tries", counterLimit),
                         counterLimit);
-            } else {
-                return createSessionWithUUID(uniqueUUID);
             }
-        } else {
-            return createSessionWithUUID(uniqueUUID);
         }
+            return createSessionWithUUID(uniqueUUID);
+
     }
 
     public String generateToken(UUID sessionID, OpenViduRole role) throws OpenViduJavaClientException,
