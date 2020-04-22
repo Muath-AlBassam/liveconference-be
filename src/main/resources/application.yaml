@@ -27,7 +27,7 @@ spring:
       cleanup-cron: 0 0 6 * * ? # at 0 sec 0 min hour 6 all days of month all months any day of the week
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     format_sql: true
     show_sql: true
   datasource:

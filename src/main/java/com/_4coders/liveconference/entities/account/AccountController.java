@@ -291,6 +291,7 @@ public class AccountController {
     }
 
     @PostMapping(value = "/logout")
+    @Transactional
     public ResponseEntity<Boolean> logout(Authentication authentication, HttpServletRequest httpServletRequest,
                                           HttpServletResponse httpServletResponse) {
         log.atFinest().log("Request for logging of User with Email [%s]",

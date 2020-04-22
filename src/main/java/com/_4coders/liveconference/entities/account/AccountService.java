@@ -115,7 +115,6 @@ public class AccountService {
             AccountDetails principal = (AccountDetails) authentication.getPrincipal();
             if (principal.getAccount().getCurrentInUseUser() != null) {
                 accountRepository.setCurrentInUseUserToNull(account.getId());
-                account.setCurrentInUseUser(null);
                 principal.getAccount().getCurrentInUseUser().setLastStatus(principal.getAccount().getCurrentInUseUser().getStatus());
                 principal.getAccount().getCurrentInUseUser().setStatus(UserStatus.OFFLINE);
                 userService.updateUserStatusAndLastStatusByUserUuid(principal.getAccount(),
@@ -123,6 +122,7 @@ public class AccountService {
                         principal.getAccount().getCurrentInUseUser().getStatus().toString(),
                         principal.getAccount().getCurrentInUseUser().getLastStatus().toString());
                 principal.getAccount().setCurrentInUseUser(null);
+                account.setCurrentInUseUser(null);
                 Authentication newAuth = new UsernamePasswordAuthenticationToken(principal,
                         authentication.getCredentials(), authentication.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(newAuth);
@@ -138,11 +138,11 @@ public class AccountService {
         final SessionInformation sessionInformation = sessionRegistry.getSessionInformation(sessionId);
         AccountDetails principal = (AccountDetails) authentication.getPrincipal();
         if (sessionInformation != null) {
+            clearCurrentInUseUser(principal.getAccount());
+            accountRepository.updateLastLogoutDate(principal.getAccount().getId(), LocalDateTime.now());
             sessionInformation.expireNow();
             new SecurityContextLogoutHandler().logout(httpServletRequest, httpServletResponse, authentication);
             sessionRepository.deleteById(sessionId);
-            clearCurrentInUseUser(principal.getAccount());
-            accountRepository.updateLastLogoutDate(principal.getAccount().getId(), LocalDateTime.now());
             return true;
         } else {
             return false;
