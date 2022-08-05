@@ -28,11 +28,15 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+#      ddl-auto: none
     format_sql: true
     show_sql: true
   datasource:
+#    url: jdbc:postgresql://ecim-test-database-v0-0-1.cxpfmk0gzc4j.us-east-2.rds.amazonaws.com:5432/TestV001
+#    username: ecim_t_postgres
+#    password: eB9MGN6aM5o?N[?=a=F^p:n6Fq6Y
     url: jdbc:postgresql://localhost:5432/live_conference
-    username: postgres
+    username: Muath Albassam
     password: Muath20111418
   jackson:
 #    mapper: #will show any field that doesn't have @jsonView
